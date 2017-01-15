@@ -1,0 +1,76 @@
+{
+    "database": {
+        "name": "db1",
+        "tables": [
+            {
+                "name": "names",
+                "records": [
+                    {
+                        "cId": 1484349811160,
+                        "name": "Nome 0",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    },
+                    {
+                        "cId": 1484349811160,
+                        "name": "Nome 1",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    },
+                    {
+                        "cId": 1484349811160,
+                        "name": "Nome 2",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    }
+                ]
+            },
+            {
+                "name": "cities",
+                "records": [
+                    {
+                        "cId": 1484349811164,
+                        "name": "City 0",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    },
+                    {
+                        "cId": 1484349811164,
+                        "name": "City 1",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    },
+                    {
+                        "cId": 1484349811165,
+                        "name": "City 2",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    }
+                ]
+            },
+            {
+                "name": "states",
+                "records": [
+                    {
+                        "cId": 1484349811167,
+                        "state": "state 0",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    },
+                    {
+                        "cId": 1484349811167,
+                        "state": "state 1",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    },
+                    {
+                        "cId": 1484349811167,
+                        "state": "state 2",
+                        "dateCreated": "2017-01-13T23:23:31+0000",
+                        "dateUpdated": "2017-01-13T23:23:31+0000"
+                    }
+                ]
+            }
+        ]
+    }
+}
