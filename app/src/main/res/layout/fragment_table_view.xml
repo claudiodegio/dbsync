@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btPrev"
+            android:text="PREV"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+
+        <TextView
+            android:id="@+id/tvPage"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            tools:text="1/1"/>
+
+        <Button
+            android:id="@+id/btNext"
+            android:text="NEXT"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <HorizontalScrollView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:isScrollContainer="true">
+
+            <TableRow
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:text="Row 1"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:text="Row 2"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:text="Row 1"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+
+
+                <TextView
+                    android:text="Row 1"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:text="Row 1"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:text="Row 1"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:text="Row 1"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+                <TextView
+                    android:text="Row 1"
+                    android:layout_width="wrap_content"
+                    android:background="#b0b0b0"
+                    android:textColor="#000000"
+                    android:padding="18dip"
+                    android:gravity="center"/>
+
+
+
+            </TableRow>
+
+        </TableLayout>
+        </HorizontalScrollView>
+    </ScrollView>
+</LinearLayout>

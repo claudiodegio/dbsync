@@ -13,6 +13,12 @@
         android:layout_height="match_parent">
 
         <Button
+            android:id="@+id/btDb1"
+            android:text="DB 1 (1 TABLE)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
             android:id="@+id/btTest"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -23,5 +29,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btGDrive" />
+
+        <Button
+            android:id="@+id/btToDbManager"
+            android:text="TO DB manager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

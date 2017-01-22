@@ -6,14 +6,26 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.MetadataChangeSet;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -22,8 +34,21 @@ public class TestGDriveActivity extends AppCompatActivity implements GoogleApiCl
 
     GoogleApiClient mGoogleApiClient;
 
-    final int RESOLVE_CONNECTION_REQUEST_CODE = 100;
+    final static String TAG = "TestGDriveActivity";
 
+    final int RESOLVE_CONNECTION_REQUEST_CODE = 100;
+    final int REQUEST_CODE_CREATOR = 200;
+
+    final static String RESOURCE_ID = "0B7R4nsyQgnmna081ZzdBMnRfWW8";
+
+    @BindView(R.id.tvTimestamp)
+    TextView mTvTimestamp;
+
+    @BindView(R.id.tvDatetime)
+    TextView mTvDatetime;
+
+    @BindView(R.id.tvDatetimeTimeZone)
+    TextView mTvDatetimeZone;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +63,26 @@ public class TestGDriveActivity extends AppCompatActivity implements GoogleApiCl
                 .build();
 
         ButterKnife.bind(this);
+
+        init();
+    }
+
+    private void init(){
+        long timestamp = System.currentTimeMillis();
+
+        mTvTimestamp.setText(Long.toString(timestamp));
+
+        Date date = new Date();
+
+        DateFormat dateFormat = android.text.format.DateFormat.getTimeFormat(getApplicationContext());
+
+        mTvDatetime.setText(dateFormat.format(date));
+
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm z");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        mTvDatetimeZone.setText(simpleDateFormat.format(date));
+
     }
 
     @Override
@@ -89,4 +134,39 @@ public class TestGDriveActivity extends AppCompatActivity implements GoogleApiCl
             GoogleApiAvailability.getInstance().getErrorDialog(this, connectionResult.getErrorCode(), 0).show();
         }
     }
+
+
+    @OnClick(R.id.btGen)
+    public void generateJson() {
+
+
+        /*MetadataChangeSet metadataChangeSet = new MetadataChangeSet.Builder()
+                .setMimeType("application/json")
+                .build();
+        IntentSender intentSender = Drive.DriveApi.newCreateFileActivityBuilder()
+                .setActivityTitle("Crea")
+                .setInitialMetadata(metadataChangeSet)
+                .build(mGoogleApiClient);
+
+        try {
+            startIntentSenderForResult(intentSender, 1, null, 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            // Handle the exception
+            Log.e(TAG, "generateJson: ", e);
+        }*/
+    }
+
+    public void readText() {
+        Drive.DriveApi.fetchDriveId(mGoogleApiClient, RESOURCE_ID)
+                .setResultCallback(mFetchResultCallBack);
+    }
+
+    private ResultCallback<DriveApi.DriveIdResult> mFetchResultCallBack = new ResultCallback<DriveApi.DriveIdResult>() {
+
+
+        @Override
+        public void onResult(@NonNull DriveApi.DriveIdResult driveIdResult) {
+
+        }
+    };
 }

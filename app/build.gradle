@@ -19,6 +19,7 @@ android {
     }
 }
 
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -33,4 +34,7 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-core:2.8.6'
 
     compile 'com.google.android.gms:play-services-drive:10.0.1'
+
+    compile 'com.github.claudiodegio:sfl4j-android:1.0.0'
+    compile 'im.dino:dbinspector:3.4.0@aar'
 }

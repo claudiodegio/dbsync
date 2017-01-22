@@ -8,4 +8,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/btGDrive" />
+
+    <Button
+        android:text="GENERATE JSON DATABASE"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btGen" />
+
+    <Button
+        android:text="READ TEXT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btRead" />
+
+    <TextView
+        android:id="@+id/tvTimestamp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tvDatetime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tvDatetimeTimeZone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 </LinearLayout>

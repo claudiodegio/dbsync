@@ -10,10 +10,20 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+
+import com.claudiodegio.dbsync.sample.db1.MainDb1Activity;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import im.dino.dbinspector.activities.DbInspectorActivity;
 
 public class MainActivity extends AppCompatActivity {
+
+    static final private Logger log = LoggerFactory.getLogger(MainActivity.class);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,5 +65,16 @@ public class MainActivity extends AppCompatActivity {
     public void goToGDRive(){
 
         startActivity(new Intent(this, TestGDriveActivity.class));
+    }
+
+    @OnClick(R.id.btToDbManager)
+    public void goToDBManager(){
+
+        startActivity(new Intent(this, DbInspectorActivity.class));
+    }
+
+    @OnClick(R.id.btDb1)
+    public void goToDB1(){
+        startActivity(new Intent(this, MainDb1Activity.class));
     }
 }
