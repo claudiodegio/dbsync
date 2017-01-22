@@ -10,21 +10,29 @@
 
     </FrameLayout>
 
-    <Button
-        android:text="INSERT \nNAME"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btInsertName" />
 
-    <Button
-        android:text="DB Manager"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btToDbManager" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <Button
-        android:text="Sync"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btSync" />
+        <Button
+            android:text="INSERT \nNAME"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btInsertName" />
+
+        <Button
+            android:text="DB Manager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btToDbManager" />
+
+        <Button
+            android:text="Sync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btSync" />
+
+    </LinearLayout>
 </LinearLayout>

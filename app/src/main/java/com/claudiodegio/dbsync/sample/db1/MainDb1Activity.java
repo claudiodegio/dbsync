@@ -7,6 +7,7 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.claudiodegio.dbsync.sample.BaseActivity;
 import com.claudiodegio.dbsync.sample.R;
@@ -15,9 +16,10 @@ import com.claudiodegio.dbsync.sample.tablemanager.TableViewerFragment;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import im.dino.dbinspector.activities.DbInspectorActivity;
-import im.dino.dbinspector.fragments.TableFragment;
 
-public class MainDb1Activity extends BaseActivity {
+public class MainDb1Activity extends BaseActivity implements TableViewerFragment.OnItemClicked {
+
+    TableViewerFragment mFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -25,12 +27,13 @@ public class MainDb1Activity extends BaseActivity {
         setContentView(R.layout.activity_db1_main);
         ButterKnife.bind(this);
 
-        TableViewerFragment fragment = TableViewerFragment.newInstance();
+        mFragment = TableViewerFragment.newInstance("db1.db", "name");
+        mFragment.setOnItemClicked(this);
 
         FragmentManager fm = getFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
 
-        ft.add(R.id.flFragment, fragment, "TAG").commit();
+        ft.add(R.id.flFragment, mFragment, "TAG").commit();
     }
 
     @OnClick(R.id.btToDbManager)
@@ -41,5 +44,20 @@ public class MainDb1Activity extends BaseActivity {
     @OnClick(R.id.btInsertName)
     public void goInsertName(){
         startActivity(new Intent(this, InsertNameActivity.class));
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        mFragment.reload();
+    }
+
+    @Override
+    public void onItemClicked(long id, String [] data) {
+        Toast.makeText(this, "" + id, Toast.LENGTH_SHORT).show();
+
+        Intent intent = new Intent(this, InsertNameActivity.class);
+        intent.putExtra("ID", id);
+        startActivity(intent);
     }
 }

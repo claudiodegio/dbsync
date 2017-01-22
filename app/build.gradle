@@ -37,4 +37,5 @@ dependencies {
 
     compile 'com.github.claudiodegio:sfl4j-android:1.0.0'
     compile 'im.dino:dbinspector:3.4.0@aar'
+    compile 'de.codecrafters.tableview:tableview:2.4.2'
 }

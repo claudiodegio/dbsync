@@ -11,8 +11,14 @@
         android:id="@+id/etName" />
 
     <Button
+        android:id="@+id/btInsert"
         android:text="INSERT"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/btInsert" />
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btUpdate"
+        android:text="UPDATE"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </LinearLayout>
