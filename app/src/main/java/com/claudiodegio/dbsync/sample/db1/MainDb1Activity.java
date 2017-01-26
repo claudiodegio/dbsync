@@ -9,6 +9,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import com.claudiodegio.dbsync.CloudProvider;
+import com.claudiodegio.dbsync.DBSync;
+import com.claudiodegio.dbsync.GDriveCloudProvider;
+import com.claudiodegio.dbsync.Table;
 import com.claudiodegio.dbsync.sample.BaseActivity;
 import com.claudiodegio.dbsync.sample.R;
 import com.claudiodegio.dbsync.sample.tablemanager.TableViewerFragment;
@@ -44,6 +48,23 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
     @OnClick(R.id.btInsertName)
     public void goInsertName(){
         startActivity(new Intent(this, InsertNameActivity.class));
+    }
+
+    @OnClick(R.id.btSync)
+    public void startDbSync(){
+
+
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder()
+                .build();
+
+        DBSync dbSync = new DBSync.Builder(this)
+                .setCloudProvider(gDriveProvider)
+                .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
+                .setDataBaseName(app.db1OpenHelper.getDatabaseName())
+                .addTable(new Table.Builder("name").build())
+                .build();
+
+        dbSync.sync();
     }
 
     @Override

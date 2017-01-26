@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -30,6 +31,8 @@ public class InsertNameActivity extends BaseActivity {
     @BindView(R.id.btInsert)
     Button btInsert;
 
+    @BindView(R.id.cbNull)
+    CheckBox mCheckBoxNull;
     private long mId = -1;
 
     SQLiteDatabase mDB;
@@ -54,7 +57,11 @@ public class InsertNameActivity extends BaseActivity {
 
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put("NAME", mETName.getEditableText().toString());
+        if (mCheckBoxNull.isChecked()) {
+            contentValues.put("NAME", (String)null);
+        } else {
+            contentValues.put("NAME", mETName.getEditableText().toString());
+        }
         contentValues.put("DATE_CREATED", System.currentTimeMillis());
 
         mDB.insert("name", null, contentValues);
@@ -67,7 +74,11 @@ public class InsertNameActivity extends BaseActivity {
 
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put("NAME", mETName.getEditableText().toString());
+        if (mCheckBoxNull.isChecked()) {
+            contentValues.put("NAME", (String)null);
+        } else {
+            contentValues.put("NAME", mETName.getEditableText().toString());
+        }
         contentValues.put("LAST_UPDATED", System.currentTimeMillis());
 
         mDB.update("name", contentValues, "_id = ? ", new String[] {Long.toString(mId)});
