@@ -1,7 +1,6 @@
 package com.claudiodegio.dbsync.sample.db1;
 
 
-import android.app.Application;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
@@ -11,6 +10,7 @@ import android.widget.Toast;
 
 import com.claudiodegio.dbsync.CloudProvider;
 import com.claudiodegio.dbsync.DBSync;
+import com.claudiodegio.dbsync.SyncResult;
 import com.claudiodegio.dbsync.GDriveCloudProvider;
 import com.claudiodegio.dbsync.Table;
 import com.claudiodegio.dbsync.sample.BaseActivity;
@@ -64,7 +64,9 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
                 .addTable(new Table.Builder("name").build())
                 .build();
 
-        dbSync.sync();
+        SyncResult result = dbSync.sync();
+
+        Toast.makeText(app, "result: " + result.getStatus().getStatusCode() + " message:" + result.getStatus().getStatusMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

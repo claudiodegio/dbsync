@@ -4,14 +4,11 @@ package com.claudiodegio.dbsync;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,56 +31,55 @@ public class DBSync {
     }
 
     // TODO fare la versione sincrona e async
-    public void sync() {
+    public SyncResult sync() {
 
         // download
 
-        // upload
+        // writeDateBaseFile
 
+        try {
+            writeDateBaseFile();
 
-        upload();
-
+            // ALL OK
+            return new SyncResult(new Status(Status.OK));
+        } catch (SyncException e) {
+            return new SyncResult(e.getStatus());
+        } catch (Exception e) {
+            return new SyncResult(new Status(Status.ERROR, e.getMessage()));
+        }
     }
 
 
-    private void upload(){
-
-        File outDir = mCtx.getExternalFilesDir(null);
-
-        File outFile = new File(outDir, "test1.json");
-
-        if (outFile.exists()) {
-            outFile.delete();
-        }
+    private void writeDateBaseFile() throws SyncException {
+        File tempDbFile;
+        FileOutputStream outStream;
+        DatabaseWriter writer;
 
         try {
-            outFile.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            tempDbFile = File.createTempFile("database", ".json");
 
-        Log.i(TAG, "outFile: " + outFile.getAbsolutePath());
+            Log.i(TAG, "Create tmp db file: " + tempDbFile.getAbsolutePath());
 
-        FileOutputStream outStream = null;
-       DatabaseWriter writer;
-        try {
-            outStream = new FileOutputStream(outFile);
+            // Open temp file
+            outStream = new FileOutputStream(tempDbFile);
             writer = new JsonDatabaseWriter(outStream);
 
-
+            // Write database start
             writer.writeStartDatabase(mDataBaseName, mTables.size());
 
+            // Write tables
             for (Table table : mTables) {
                 serializeTable(table, writer);
             }
 
+            // Close database
             writer.writeEndDatabase();
             writer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        Log.i(TAG, "lenght: " + outFile.length());
+            Log.i(TAG, "Created DB file with size: " + tempDbFile.length());
+        } catch (Exception e) {
+            throw new SyncException(Status.ERROR_WRITING_TMP_DB, e.getMessage());
+        }
     }
 
     private void serializeTable(final Table table, final DatabaseWriter writer) throws IOException{
