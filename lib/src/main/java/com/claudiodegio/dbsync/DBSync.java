@@ -1,6 +1,7 @@
 package com.claudiodegio.dbsync;
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class DBSync {
 
@@ -35,9 +37,11 @@ public class DBSync {
         File tempFbFile = null;
         // download
 
-        // writeDateBaseFile
 
         try {
+            // populateUUID
+            populateUUID();
+
             tempFbFile = writeDateBaseFile();
 
             mCloudProvider.uploadFile(tempFbFile);
@@ -98,6 +102,7 @@ public class DBSync {
 
         columnsMetadata = SqlLiteUtility.readTableMetadata(mDB, table.getName());
 
+        // TODO Gestire la close pulita
         cur = mDB.query(table.getName(), null, null, null, null, null, null);
 
         Log.i(TAG, "Write table:" + table.getName()+ " records:" + cur.getCount());
@@ -132,6 +137,52 @@ public class DBSync {
         writer.writeEndTable();
     }
 
+    private void populateUUID(){
+
+        // populate UUID Table
+        for (Table table : mTables) {
+            populateUUID(table);
+        }
+    }
+
+    private void populateUUID(Table table){
+        String selection;
+        Cursor cur = null;
+        String uuid;
+        int id;
+        int rowCount;
+        ContentValues contentValuesUpdate;
+        Log.i(TAG, "start populateUUID for table:" +table.getName()+ " idColumn:" + table.getIdColumn() + " CloudIdColumn:" + table.getCloudIdColumn());
+
+        selection = table.getCloudIdColumn() + " IS NULL OR " + table.getCloudIdColumn() + " = \"\"";
+
+        try {
+            cur = mDB.query(table.getName(), new String[]{table.getIdColumn()}, selection, null, null, null, null);
+
+            rowCount = 0;
+            contentValuesUpdate = new ContentValues();
+
+            while(cur.moveToNext()) {
+                id = cur.getInt(0);
+                uuid = UUID.randomUUID().toString();
+
+                Log.d(TAG, "assing uuid:" + uuid + " to id:" + id);
+                // Update of cloud id
+                contentValuesUpdate.put(table.getCloudIdColumn(), uuid);
+
+                mDB.update(table.getName(), contentValuesUpdate, table.getIdColumn() + " = ?", new String[]{Integer.toString(id)});
+                rowCount++;
+            }
+
+            Log.i(TAG, "end populateUUID rows updated:" + rowCount);
+        } catch(Exception e) {
+            throw new SyncException(SyncStatus.ERROR_GENERATE_UUID, "Error generating UUID message:" + e.getMessage());
+        } finally {
+            if (cur != null) {
+                cur.close();
+            }
+        }
+    }
     public static class Builder {
 
         private CloudProvider mCloudProvider;
