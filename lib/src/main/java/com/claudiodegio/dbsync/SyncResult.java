@@ -1,19 +1,14 @@
 package com.claudiodegio.dbsync;
 
-import android.support.annotation.IntDef;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
 public class SyncResult {
 
-    private Status mStatus;
+    private SyncStatus mSyncStatus;
 
-    public SyncResult(Status status) {
-        this.mStatus = status;
+    public SyncResult(SyncStatus syncStatus) {
+        this.mSyncStatus = syncStatus;
     }
 
-    public Status getStatus() {
-        return mStatus;
+    public SyncStatus getStatus() {
+        return mSyncStatus;
     }
 }

@@ -11,10 +11,20 @@
     </FrameLayout>
 
 
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tvStatus2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <Button
             android:text="INSERT \nNAME"
@@ -28,11 +38,28 @@
             android:layout_height="wrap_content"
             android:id="@+id/btToDbManager" />
 
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
         <Button
-            android:text="Sync"
+            android:id="@+id/btSync"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/btSync" />
+            android:text="Sync"
+            android:enabled="false"/>
+
+        <Button
+            android:id="@+id/btSelectFileForSync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select File For Sync"
+            android:enabled="false"/>
 
     </LinearLayout>
 </LinearLayout>

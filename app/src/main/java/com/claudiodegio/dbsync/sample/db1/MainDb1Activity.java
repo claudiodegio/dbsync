@@ -4,8 +4,14 @@ package com.claudiodegio.dbsync.sample.db1;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.IntentSender;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.claudiodegio.dbsync.CloudProvider;
@@ -16,14 +22,42 @@ import com.claudiodegio.dbsync.Table;
 import com.claudiodegio.dbsync.sample.BaseActivity;
 import com.claudiodegio.dbsync.sample.R;
 import com.claudiodegio.dbsync.sample.tablemanager.TableViewerFragment;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.OpenFileActivityBuilder;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import im.dino.dbinspector.activities.DbInspectorActivity;
 
-public class MainDb1Activity extends BaseActivity implements TableViewerFragment.OnItemClicked {
+public class MainDb1Activity extends BaseActivity implements TableViewerFragment.OnItemClicked, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+    private final static String TAG = "MainDb1Activity";
 
     TableViewerFragment mFragment;
+
+    GoogleApiClient mGoogleApiClient;
+
+    final int RESOLVE_CONNECTION_REQUEST_CODE = 100;
+    final int REQUEST_CODE_SELECT_FILE = 200;
+
+    @BindView(R.id.tvStatus)
+    TextView mTvStatus;
+    @BindView(R.id.tvStatus2)
+    TextView mTvStatus2;
+
+    @BindView(R.id.btSync)
+    Button mBtSync;
+    @BindView(R.id.btSelectFileForSync)
+    Button mBtSelectFileForSync;
+
+    private DriveId mDriveId;
+    private DBSync dbSync;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,6 +72,14 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
         FragmentTransaction ft = fm.beginTransaction();
 
         ft.add(R.id.flFragment, mFragment, "TAG").commit();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_FILE)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
     }
 
     @OnClick(R.id.btToDbManager)
@@ -55,18 +97,31 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
 
 
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder()
+                .setSyncFileByDriveId(mDriveId)
+                .setGoogleApiClient(mGoogleApiClient)
                 .build();
 
-        DBSync dbSync = new DBSync.Builder(this)
+        dbSync = new DBSync.Builder(this)
                 .setCloudProvider(gDriveProvider)
                 .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
                 .setDataBaseName(app.db1OpenHelper.getDatabaseName())
                 .addTable(new Table.Builder("name").build())
                 .build();
 
-        SyncResult result = dbSync.sync();
 
-        Toast.makeText(app, "result: " + result.getStatus().getStatusCode() + " message:" + result.getStatus().getStatusMessage(), Toast.LENGTH_SHORT).show();
+        new SyncTask().execute();
+      }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -83,4 +138,78 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
         intent.putExtra("ID", id);
         startActivity(intent);
     }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.i(TAG,"onConnected");
+        mTvStatus2.setText("GDrive Client - Connected");
+       // mBtSync.setEnabled(true);
+        mBtSelectFileForSync.setEnabled(true);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i(TAG, "onConnectionSuspended");
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        switch (requestCode) {
+            case RESOLVE_CONNECTION_REQUEST_CODE:
+                if (resultCode == RESULT_OK) {
+                    mGoogleApiClient.connect();
+                }
+            case REQUEST_CODE_SELECT_FILE:
+
+                mDriveId = data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
+                mTvStatus2.setText("GDrive Client - Connected - File Selected");
+                mBtSync.setEnabled(true);
+                break;
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.i(TAG, "onConnectionFailed:" + connectionResult.getErrorMessage());
+
+        // Viene chiamata nel caso la connect fallisca ad esempio
+        // non è ancora stata data autorizzaiozne alla applicazione corrente
+        if (connectionResult.hasResolution()) {
+            try {
+                connectionResult.startResolutionForResult(this, RESOLVE_CONNECTION_REQUEST_CODE);
+            } catch (IntentSender.SendIntentException e) {
+                // Unable to resolve, message user appropriately
+            }
+        } else {
+            GoogleApiAvailability.getInstance().getErrorDialog(this, connectionResult.getErrorCode(), 0).show();
+        }
+    }
+
+    @OnClick(R.id.btSelectFileForSync)
+    public void actionSelectFileForSync() {
+        try {
+            IntentSender intentSender = Drive.DriveApi.newOpenFileActivityBuilder()
+                    .setActivityTitle("Select file for sync")
+                    .build(mGoogleApiClient);
+
+            startIntentSenderForResult(intentSender, REQUEST_CODE_SELECT_FILE, null, 0, 0, 0);
+        } catch (Exception e) {
+            Log.w(TAG, "Unable to send intent", e);
+        }
+    }
+
+    class SyncTask extends AsyncTask<Void, Void, SyncResult> {
+
+        @Override
+        protected SyncResult doInBackground(Void... params) {
+            return   dbSync.sync();
+        }
+
+        @Override
+        protected void onPostExecute(SyncResult result) {
+            Toast.makeText(app, "result: " + result.getStatus().getStatusCode() + " message:" + result.getStatus().getStatusMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }

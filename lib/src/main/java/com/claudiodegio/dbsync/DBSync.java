@@ -32,25 +32,32 @@ public class DBSync {
 
     // TODO fare la versione sincrona e async
     public SyncResult sync() {
-
+        File tempFbFile = null;
         // download
 
         // writeDateBaseFile
 
         try {
-            writeDateBaseFile();
+            tempFbFile = writeDateBaseFile();
+
+            mCloudProvider.uploadFile(tempFbFile);
 
             // ALL OK
-            return new SyncResult(new Status(Status.OK));
+            return new SyncResult(new SyncStatus(SyncStatus.OK));
         } catch (SyncException e) {
             return new SyncResult(e.getStatus());
         } catch (Exception e) {
-            return new SyncResult(new Status(Status.ERROR, e.getMessage()));
+            // TODO capire se lanciare un eccezione o ritorno con errore
+            return new SyncResult(new SyncStatus(SyncStatus.ERROR, e.getMessage()));
+        } finally {
+            if (tempFbFile != null && tempFbFile.exists()) {
+                Log.d(TAG, "delete db temp file:" + tempFbFile.getName());
+            }
         }
     }
 
 
-    private void writeDateBaseFile() throws SyncException {
+    private File writeDateBaseFile() throws SyncException {
         File tempDbFile;
         FileOutputStream outStream;
         DatabaseWriter writer;
@@ -77,8 +84,9 @@ public class DBSync {
             writer.close();
 
             Log.i(TAG, "Created DB file with size: " + tempDbFile.length());
+            return tempDbFile;
         } catch (Exception e) {
-            throw new SyncException(Status.ERROR_WRITING_TMP_DB, e.getMessage());
+            throw new SyncException(SyncStatus.ERROR_WRITING_TMP_DB, e.getMessage());
         }
     }
 

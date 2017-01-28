@@ -4,14 +4,14 @@ package com.claudiodegio.dbsync;
 
 public class SyncException extends RuntimeException {
 
-    private Status mStatus;
+    private SyncStatus mSyncStatus;
 
-    public SyncException(@Status.Code int statusCode, String message) {
+    public SyncException(@SyncStatus.Code int statusCode, String message) {
         super(message);
-        this.mStatus = new Status(statusCode, message);
+        this.mSyncStatus = new SyncStatus(statusCode, message);
     }
 
-    public Status getStatus() {
-        return mStatus;
+    public SyncStatus getStatus() {
+        return mSyncStatus;
     }
 }
