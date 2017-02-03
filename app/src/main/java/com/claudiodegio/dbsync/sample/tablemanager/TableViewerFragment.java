@@ -153,7 +153,11 @@ public class TableViewerFragment extends Fragment implements TableDataClickListe
             String [] records = new String[selectCursor.getColumnCount()];
 
             for (int i = 0; i < selectCursor.getColumnCount(); ++i) {
-                records[i] = selectCursor.getString(i);
+                if (!selectCursor.isNull(i)) {
+                    records[i] = selectCursor.getString(i);
+                } else {
+                    records[i] = "[NULL]";
+                }
             }
 
             list.add(records);

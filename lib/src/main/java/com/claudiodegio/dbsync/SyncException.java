@@ -11,6 +11,11 @@ public class SyncException extends RuntimeException {
         this.mSyncStatus = new SyncStatus(statusCode, message);
     }
 
+    public SyncException(@SyncStatus.Code int statusCode, Exception ex) {
+        super(ex);
+        this.mSyncStatus = new SyncStatus(statusCode, ex.getMessage());
+    }
+
     public SyncStatus getStatus() {
         return mSyncStatus;
     }

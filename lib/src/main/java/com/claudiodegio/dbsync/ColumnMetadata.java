@@ -8,12 +8,11 @@ import java.lang.annotation.RetentionPolicy;
 
 public class ColumnMetadata {
 
-
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({TYPE_INTEGER, TYPE_TEXT})
+    @IntDef({TYPE_LONG, TYPE_STRING})
     public @interface Type {}
-    static final int TYPE_INTEGER = 0;
-    static final int TYPE_TEXT = 1;
+    static final int TYPE_LONG = 0;
+    static final int TYPE_STRING = 1;
 
     private String name;
     private @Type int type;

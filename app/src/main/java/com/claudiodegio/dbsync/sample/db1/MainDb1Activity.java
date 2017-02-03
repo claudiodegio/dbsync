@@ -3,8 +3,10 @@ package com.claudiodegio.dbsync.sample.db1;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -45,6 +47,7 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
 
     final int RESOLVE_CONNECTION_REQUEST_CODE = 100;
     final int REQUEST_CODE_SELECT_FILE = 200;
+    final String DRIVE_ID_FILE = "DRIVE_ID_FILE";
 
     @BindView(R.id.tvStatus)
     TextView mTvStatus;
@@ -79,6 +82,7 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
 
     }
 
@@ -143,8 +147,15 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
     public void onConnected(@Nullable Bundle bundle) {
         Log.i(TAG,"onConnected");
         mTvStatus2.setText("GDrive Client - Connected");
-       // mBtSync.setEnabled(true);
         mBtSelectFileForSync.setEnabled(true);
+
+        String driveId = getPreferences(Context.MODE_PRIVATE).getString(DRIVE_ID_FILE, null);
+
+        if (driveId != null) {
+            mDriveId = DriveId.decodeFromString(driveId);
+            mTvStatus2.setText("GDrive Client - Connected - File Selected");
+            mBtSync.setEnabled(true);
+        }
     }
 
     @Override
@@ -163,6 +174,11 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
             case REQUEST_CODE_SELECT_FILE:
 
                 mDriveId = data.getParcelableExtra(OpenFileActivityBuilder.EXTRA_RESPONSE_DRIVE_ID);
+
+                SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
+                editor.putString(DRIVE_ID_FILE, mDriveId.encodeToString());
+                editor.commit();
+
                 mTvStatus2.setText("GDrive Client - Connected - File Selected");
                 mBtSync.setEnabled(true);
                 break;

@@ -1,9 +1,10 @@
 package com.claudiodegio.dbsync;
 
+// Potrei farlo con il decorator
 public class ColumnValue {
 
     private String mValueString;
-    private long mValueLong;
+    private Long mValueLong;
     private ColumnMetadata mMetadata;
 
     public ColumnValue(String valueString, ColumnMetadata metadata) {
@@ -11,8 +12,12 @@ public class ColumnValue {
         this.mMetadata = metadata;
     }
 
-    public ColumnValue(long valueLong, ColumnMetadata metadata) {
+    public ColumnValue(Long valueLong, ColumnMetadata metadata) {
         this.mValueLong = valueLong;
+        this.mMetadata = metadata;
+    }
+
+    public ColumnValue(ColumnMetadata metadata) {
         this.mMetadata = metadata;
     }
 
@@ -28,4 +33,11 @@ public class ColumnValue {
         return mMetadata;
     }
 
+    @Override
+    public String toString() {
+        if (mValueLong != null)
+            return mValueLong.toString();
+        else
+            return mValueString;
+    }
 }

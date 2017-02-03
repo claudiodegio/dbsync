@@ -9,13 +9,13 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class JsonDatabaseWriter implements DatabaseWriter {
+public class JSonDatabaseWriter implements DatabaseWriter {
 
-    private final static String TAG = "JsonDatabaseWriter";
+    private final static String TAG = "JSonDatabaseWriter";
     private final OutputStream mOutStream;
     private final JsonGenerator mGen;
 
-    public JsonDatabaseWriter(final OutputStream outStream) throws IOException {
+    public JSonDatabaseWriter(final OutputStream outStream) throws IOException {
         this.mOutStream = outStream;
 
         JsonFactory f = new JsonFactory();
@@ -48,10 +48,10 @@ public class JsonDatabaseWriter implements DatabaseWriter {
             fieldName = value.getMetadata().getName();
 
             switch (value.getMetadata().getType()) {
-                case ColumnMetadata.TYPE_INTEGER:
+                case ColumnMetadata.TYPE_LONG:
                     mGen.writeNumberField(fieldName, value.getValueLong());
                     break;
-                case ColumnMetadata.TYPE_TEXT:
+                case ColumnMetadata.TYPE_STRING:
                     mGen.writeStringField(fieldName, value.getValueString());
                     break;
             }

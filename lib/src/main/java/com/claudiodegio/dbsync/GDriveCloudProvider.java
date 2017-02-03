@@ -19,6 +19,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.SyncFailedException;
 
@@ -39,29 +40,29 @@ public class GDriveCloudProvider implements CloudProvider {
         DriveFile driveFile;
         MetadataResult metadataResult;
         Metadata metadata;
-        DriveContents driveContents;
+        DriveContents driveContents = null;
         DriveContentsResult driveContentsResult;
         OutputStream outputStream;
 
         Log.i(TAG, "start upload of DB file temp:" + tempFile.getName());
 
-        driveFile = mDriveId.asDriveFile();
-
-        // Get metadata
-        metadataResult = driveFile.getMetadata(mGoogleApiClient).await();
-        checkStatus(metadataResult);
-
-        metadata = metadataResult.getMetadata();
-
-        Log.i(TAG, "try to upload of DB file:" + metadata.getOriginalFilename());
-
-        // Writing file
-        driveContentsResult = driveFile.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
-        checkStatus(driveContentsResult);
-
-        driveContents = driveContentsResult.getDriveContents();
-
         try {
+            driveFile = mDriveId.asDriveFile();
+
+            // Get metadata
+            metadataResult = driveFile.getMetadata(mGoogleApiClient).await();
+            checkStatus(metadataResult);
+
+            metadata = metadataResult.getMetadata();
+
+            Log.i(TAG, "try to upload of DB file:" + metadata.getOriginalFilename());
+
+            // Writing file
+            driveContentsResult = driveFile.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
+            checkStatus(driveContentsResult);
+
+            driveContents = driveContentsResult.getDriveContents();
+
             outputStream  = driveContents.getOutputStream();
 
             // Copio il file
@@ -75,10 +76,50 @@ public class GDriveCloudProvider implements CloudProvider {
             Log.i(TAG, "file committed");
 
         } catch (IOException e) {
-            driveContents.discard(mGoogleApiClient);
+            if (driveContents != null) {
+                driveContents.discard(mGoogleApiClient);
+            }
             throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive message:" + e.getMessage());
         }
 
+    }
+
+    @Override
+    public InputStream downloadFile() {
+        DriveFile driveFile;
+        MetadataResult metadataResult;
+        Metadata metadata;
+        DriveContents driveContents = null;
+        DriveContentsResult driveContentsResult;
+        InputStream inputStream = null;
+
+        Log.i(TAG, "start download of DB file");
+
+        try {
+            driveFile = mDriveId.asDriveFile();
+
+            // Get metadata
+            metadataResult = driveFile.getMetadata(mGoogleApiClient).await();
+            checkStatus(metadataResult);
+
+            // Writing file
+            driveContentsResult = driveFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
+            checkStatus(driveContentsResult);
+
+            metadata = metadataResult.getMetadata();
+            Log.i(TAG, "downloaded DB file:" + metadata.getOriginalFilename() + " modified on: " + metadata.getModifiedDate() + " size:" + metadata.getFileSize() + " bytes");
+
+            driveContents = driveContentsResult.getDriveContents();
+
+            inputStream  = driveContents.getInputStream();
+
+            return inputStream;
+        } catch (Exception e) {
+            if (driveContents != null) {
+                driveContents.discard(mGoogleApiClient);
+            }
+            throw new SyncException(SyncStatus.ERROR_DOWNLOAD_CLOUD, "Error reading file to GDrive message:" + e.getMessage());
+        }
     }
 
     private void checkStatus(Result result) throws SyncException {

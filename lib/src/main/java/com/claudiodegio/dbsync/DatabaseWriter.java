@@ -4,7 +4,6 @@ import java.io.IOException;
 
 public interface DatabaseWriter {
 
-
     void writeStartDatabase(String name, int numOfTable) throws IOException;
     void writeEndDatabase() throws IOException;
 

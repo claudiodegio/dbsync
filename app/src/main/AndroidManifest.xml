@@ -28,6 +28,11 @@
             android:name=".db1.MainDb1Activity"
             android:label="DB1"
             android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity

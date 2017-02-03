@@ -7,11 +7,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class DBSync {
@@ -35,16 +39,22 @@ public class DBSync {
     // TODO fare la versione sincrona e async
     public SyncResult sync() {
         File tempFbFile = null;
-        // download
-
+        InputStream inputStream = null;
 
         try {
-            // populateUUID
+            // upload
+            inputStream = mCloudProvider.downloadFile();
+
+            readDatabase(inputStream);
+
+        /*    // populateUUID
             populateUUID();
 
+            // Write the database file
             tempFbFile = writeDateBaseFile();
 
-            mCloudProvider.uploadFile(tempFbFile);
+            // Upload file to cloud
+            mCloudProvider.uploadFile(tempFbFile);*/
 
             // ALL OK
             return new SyncResult(new SyncStatus(SyncStatus.OK));
@@ -54,6 +64,8 @@ public class DBSync {
             // TODO capire se lanciare un eccezione o ritorno con errore
             return new SyncResult(new SyncStatus(SyncStatus.ERROR, e.getMessage()));
         } finally {
+
+            IOUtils.closeQuietly(inputStream);
             if (tempFbFile != null && tempFbFile.exists()) {
                 Log.d(TAG, "delete db temp file:" + tempFbFile.getName());
             }
@@ -73,7 +85,7 @@ public class DBSync {
 
             // Open temp file
             outStream = new FileOutputStream(tempDbFile);
-            writer = new JsonDatabaseWriter(outStream);
+            writer = new JSonDatabaseWriter(outStream);
 
             // Write database start
             writer.writeStartDatabase(mDataBaseName, mTables.size());
@@ -117,11 +129,11 @@ public class DBSync {
 
                     // valore, nome, typo dato
                     switch (colMeta.getType()) {
-                        case ColumnMetadata.TYPE_INTEGER:
+                        case ColumnMetadata.TYPE_LONG:
                             value = new ColumnValue(SqlLiteUtility.getCursorLong(cur, colMeta.getName()), colMeta);
                             break;
 
-                        case ColumnMetadata.TYPE_TEXT:
+                        case ColumnMetadata.TYPE_STRING:
                              value = new ColumnValue(SqlLiteUtility.getCursorString(cur, colMeta.getName()), colMeta);
                             break;
                     }
@@ -162,6 +174,7 @@ public class DBSync {
             rowCount = 0;
             contentValuesUpdate = new ContentValues();
 
+            // TODO check uuid it'unique
             while(cur.moveToNext()) {
                 id = cur.getInt(0);
                 uuid = UUID.randomUUID().toString();
@@ -182,6 +195,48 @@ public class DBSync {
                 cur.close();
             }
         }
+    }
+
+
+    private void readDatabase(final InputStream inputStream) {
+        JSonDataBaseReader reader;
+        DatabaseReaded dbReaded;
+        TableReaded dbTable;
+        Record dbRecord;
+        Map<String, ColumnMetadata> columns = null;
+
+        try {
+            System.out.println("-----");
+
+            reader = new JSonDataBaseReader(inputStream);
+
+            int elementType;
+            while ((elementType = reader.nextElement()) != JSonDataBaseReader.END) {
+                System.out.println(elementType);
+                switch (elementType) {
+                    case JSonDataBaseReader.START_DB:
+                        dbReaded = reader.readDatabase();
+                        System.out.println(dbReaded.toString());
+                        break;
+                    case JSonDataBaseReader.START_TABLE:
+                        dbTable = reader.readTable();
+                        System.out.println(dbTable.toString());
+                        columns = SqlLiteUtility.readTableMetadataAsMap(mDB, dbTable.getName());
+                        break;
+                    case JSonDataBaseReader.RECORD:
+                        dbRecord = reader.readRecord(columns);
+                        System.out.println(dbRecord.toString());
+                        break;
+                }
+            }
+
+            System.out.println("-----");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+
+
     }
     public static class Builder {
 

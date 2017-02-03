@@ -5,11 +5,27 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SqlLiteUtility {
 
 
+    public static Map<String, ColumnMetadata> readTableMetadataAsMap(final SQLiteDatabase db, final String tableName) {
+        List<ColumnMetadata> columns;
+        Map<String, ColumnMetadata> maps;
+
+        columns = readTableMetadata(db, tableName);
+
+        maps = new HashMap<>();
+
+        for (ColumnMetadata column : columns) {
+            maps.put(column.getName(), column);
+        }
+
+        return maps;
+    }
 
     public static List<ColumnMetadata> readTableMetadata(final SQLiteDatabase db, final String tableName) {
 
@@ -31,10 +47,10 @@ public class SqlLiteUtility {
 
             switch (columnType) {
                 case "INTEGER":
-                    type = ColumnMetadata.TYPE_INTEGER;
+                    type = ColumnMetadata.TYPE_LONG;
                     break;
                 case "TEXT":
-                    type = ColumnMetadata.TYPE_TEXT;
+                    type = ColumnMetadata.TYPE_STRING;
                     break;
                 default:
                     throw new RuntimeException("Type " + columnType + " non supported !!!");
