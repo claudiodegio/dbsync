@@ -20,7 +20,7 @@ import com.claudiodegio.dbsync.CloudProvider;
 import com.claudiodegio.dbsync.DBSync;
 import com.claudiodegio.dbsync.SyncResult;
 import com.claudiodegio.dbsync.GDriveCloudProvider;
-import com.claudiodegio.dbsync.Table;
+import com.claudiodegio.dbsync.TableToSync;
 import com.claudiodegio.dbsync.sample.BaseActivity;
 import com.claudiodegio.dbsync.sample.R;
 import com.claudiodegio.dbsync.sample.tablemanager.TableViewerFragment;
@@ -28,7 +28,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.OpenFileActivityBuilder;
 
@@ -109,7 +108,7 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
                 .setCloudProvider(gDriveProvider)
                 .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
                 .setDataBaseName(app.db1OpenHelper.getDatabaseName())
-                .addTable(new Table.Builder("name").build())
+                .addTable(new TableToSync.Builder("name").build())
                 .build();
 
 

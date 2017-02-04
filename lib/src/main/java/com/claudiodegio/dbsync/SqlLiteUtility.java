@@ -78,4 +78,27 @@ public class SqlLiteUtility {
         int index = cursor.getColumnIndex(columnName);
         return cursor.getLong(index);
     }
+
+    public static ColumnValue getCursorColumnValue(final Cursor cursor, final ColumnMetadata metadata) {
+        String columnName;
+        int index;
+        long valueLong;
+        String valueString;
+        ColumnValue value;
+
+        columnName = metadata.getName();
+        index = cursor.getColumnIndex(columnName);
+
+        if (cursor.isNull(index)) {
+            value =  new ColumnValue(metadata);
+        } else if(metadata.getType() == ColumnMetadata.TYPE_LONG) {
+            valueLong = getCursorLong(cursor, columnName);
+            value = new ColumnValue(valueLong, metadata);
+        } else {
+            valueString = getCursorString(cursor, columnName);
+            value = new ColumnValue(valueString, metadata);
+        }
+
+        return value;
+    }
 }

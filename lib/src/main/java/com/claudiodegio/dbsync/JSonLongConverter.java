@@ -1,5 +1,6 @@
 package com.claudiodegio.dbsync;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
@@ -33,5 +34,19 @@ public class JSonLongConverter implements JSonConverter {
         }
 
         return value;
+    }
+
+    @Override
+    public void columnValueToJson(JsonGenerator gen, ColumnValue value) throws IOException {
+
+        String fieldName;
+
+        fieldName = value.getMetadata().getName();
+
+        if (value.isNull()) {
+            gen.writeNullField(fieldName);
+        } else {
+            gen.writeNumberField(fieldName, value.getValueLong());
+        }
     }
 }

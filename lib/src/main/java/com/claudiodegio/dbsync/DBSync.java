@@ -24,11 +24,11 @@ public class DBSync {
 
     final private CloudProvider mCloudProvider;
     final private SQLiteDatabase mDB;
-    final private List<Table> mTables;
+    final private List<TableToSync> mTables;
     final private Context mCtx;
     final private String mDataBaseName;
 
-    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<Table> tables){
+    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables){
         this.mCtx = ctx;
         this.mCloudProvider = cloudProvider;
         this.mDB = db;
@@ -43,18 +43,18 @@ public class DBSync {
 
         try {
             // upload
-            inputStream = mCloudProvider.downloadFile();
+          //  inputStream = mCloudProvider.downloadFile();
 
-            readDatabase(inputStream);
+          //  readDatabase(inputStream);
 
         /*    // populateUUID
             populateUUID();
-
+*/
             // Write the database file
             tempFbFile = writeDateBaseFile();
 
             // Upload file to cloud
-            mCloudProvider.uploadFile(tempFbFile);*/
+           mCloudProvider.uploadFile(tempFbFile);
 
             // ALL OK
             return new SyncResult(new SyncStatus(SyncStatus.OK));
@@ -88,16 +88,15 @@ public class DBSync {
             writer = new JSonDatabaseWriter(outStream);
 
             // Write database start
-            writer.writeStartDatabase(mDataBaseName, mTables.size());
+            writer.writeDatabase(mDataBaseName, mTables.size());
 
             // Write tables
-            for (Table table : mTables) {
+            for (TableToSync table : mTables) {
                 serializeTable(table, writer);
             }
 
             // Close database
-            writer.writeEndDatabase();
-            writer.close();
+             writer.close();
 
             Log.i(TAG, "Created DB file with size: " + tempDbFile.length());
             return tempDbFile;
@@ -106,58 +105,51 @@ public class DBSync {
         }
     }
 
-    private void serializeTable(final Table table, final DatabaseWriter writer) throws IOException{
+    private void serializeTable(final TableToSync table, final DatabaseWriter writer) throws IOException{
         List<ColumnMetadata> columnsMetadata;
-        Cursor cur;
+        Cursor cur = null;
         ColumnValue value = null;
         Record record;
 
         columnsMetadata = SqlLiteUtility.readTableMetadata(mDB, table.getName());
 
-        // TODO Gestire la close pulita
-        cur = mDB.query(table.getName(), null, null, null, null, null, null);
+        try {
+            cur = mDB.query(table.getName(), null, null, null, null, null, null);
 
-        Log.i(TAG, "Write table:" + table.getName()+ " records:" + cur.getCount());
+            Log.i(TAG, "Write table:" + table.getName() + " records:" + cur.getCount());
 
-        writer.writeStartTable(table.getName(), cur.getCount());
+            writer.writeTable(table.getName(), cur.getCount());
 
-        while (cur.moveToNext()) {
-            record = new Record();
+            while (cur.moveToNext()) {
+                record = new Record();
 
-            for (ColumnMetadata colMeta : columnsMetadata) {
-                if (!table.isColumnToIgnore(colMeta.getName())){
-
-                    // valore, nome, typo dato
-                    switch (colMeta.getType()) {
-                        case ColumnMetadata.TYPE_LONG:
-                            value = new ColumnValue(SqlLiteUtility.getCursorLong(cur, colMeta.getName()), colMeta);
-                            break;
-
-                        case ColumnMetadata.TYPE_STRING:
-                             value = new ColumnValue(SqlLiteUtility.getCursorString(cur, colMeta.getName()), colMeta);
-                            break;
+                for (ColumnMetadata colMeta : columnsMetadata) {
+                    if (!table.isColumnToIgnore(colMeta.getName())) {
+                        value = SqlLiteUtility.getCursorColumnValue(cur, colMeta);
+                        record.add(value);
                     }
-
-                    record.add(value);
                 }
+
+                writer.writeRecord(record);
             }
-
-            writer.writeRecord(record);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (cur != null) {
+                cur.close();
+            }
         }
-
-        cur.close();
-        writer.writeEndTable();
     }
 
     private void populateUUID(){
 
-        // populate UUID Table
-        for (Table table : mTables) {
+        // populate UUID TableToSync
+        for (TableToSync table : mTables) {
             populateUUID(table);
         }
     }
 
-    private void populateUUID(Table table){
+    private void populateUUID(TableToSync table){
         String selection;
         Cursor cur = null;
         String uuid;
@@ -199,31 +191,31 @@ public class DBSync {
 
 
     private void readDatabase(final InputStream inputStream) {
-        JSonDataBaseReader reader;
-        DatabaseReaded dbReaded;
-        TableReaded dbTable;
+        JSonDatabaseReader reader = null;
+        Database dbReaded;
+        Table dbTable;
         Record dbRecord;
         Map<String, ColumnMetadata> columns = null;
 
         try {
             System.out.println("-----");
 
-            reader = new JSonDataBaseReader(inputStream);
+            reader = new JSonDatabaseReader(inputStream);
 
             int elementType;
-            while ((elementType = reader.nextElement()) != JSonDataBaseReader.END) {
+            while ((elementType = reader.nextElement()) != JSonDatabaseReader.END) {
                 System.out.println(elementType);
                 switch (elementType) {
-                    case JSonDataBaseReader.START_DB:
+                    case JSonDatabaseReader.START_DB:
                         dbReaded = reader.readDatabase();
                         System.out.println(dbReaded.toString());
                         break;
-                    case JSonDataBaseReader.START_TABLE:
+                    case JSonDatabaseReader.START_TABLE:
                         dbTable = reader.readTable();
                         System.out.println(dbTable.toString());
                         columns = SqlLiteUtility.readTableMetadataAsMap(mDB, dbTable.getName());
                         break;
-                    case JSonDataBaseReader.RECORD:
+                    case JSonDatabaseReader.RECORD:
                         dbRecord = reader.readRecord(columns);
                         System.out.println(dbRecord.toString());
                         break;
@@ -234,16 +226,16 @@ public class DBSync {
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
+        } finally {
+            reader.close();
         }
-
-
     }
     public static class Builder {
 
         private CloudProvider mCloudProvider;
         private SQLiteDatabase mDB;
         private String mDataBaseName;
-        private List<Table> mTables = new ArrayList<>();
+        private List<TableToSync> mTables = new ArrayList<>();
         private Context mCtx;
 
         public Builder(final Context ctx) {
@@ -260,7 +252,7 @@ public class DBSync {
             return this;
         }
 
-        public Builder addTable(final Table table) {
+        public Builder addTable(final TableToSync table) {
             this.mTables.add(table);
             return this;
         }

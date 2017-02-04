@@ -80,7 +80,7 @@ public class JsonDatabaseReader {
                 }
             }
         }
-        System.out.println("\tTable: " + tableName + " records:" + recordCount);
+        System.out.println("\tTableToSync: " + tableName + " records:" + recordCount);
 
         numeriche.put(tableName, recordCount);
     }

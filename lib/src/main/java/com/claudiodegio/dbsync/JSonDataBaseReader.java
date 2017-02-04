@@ -6,12 +6,13 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.Map;
 
-public class JSonDataBaseReader implements DatabaseReader {
+public class JSonDatabaseReader implements DatabaseReader {
 
 
     // TODO metterlo in qualche classe
@@ -24,11 +25,11 @@ public class JSonDataBaseReader implements DatabaseReader {
 
     private JsonParser mJp;
 
-    private DatabaseReaded mDatabaseReaded;
-    private TableReaded mCurrentTable;
+    private Database mDatabase;
+    private Table mCurrentTable;
     private Record mCurrentRecord;
 
-    public JSonDataBaseReader(InputStream inputStream) throws IOException {
+    public JSonDatabaseReader(InputStream inputStream) throws IOException {
         JsonFactory jsonFactory;
 
         jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory
@@ -42,7 +43,7 @@ public class JSonDataBaseReader implements DatabaseReader {
     }
 
     @Override
-    public DatabaseReaded readDatabase() throws IOException {
+    public Database readDatabase() throws IOException {
 
         if (mState.getElementType() != START_DB) {
             throw new IOException("Unable to read wrong current element type " + mState.getElementType());
@@ -50,11 +51,11 @@ public class JSonDataBaseReader implements DatabaseReader {
 
         mState.handle();
 
-        return mDatabaseReaded;
+        return mDatabase;
     }
 
     @Override
-    public TableReaded readTable() throws IOException {
+    public Table readTable() throws IOException {
         if (mState.getElementType() != START_TABLE) {
             throw new IOException("Unable to read wrong current element type " + mState.getElementType());
         }
@@ -81,6 +82,13 @@ public class JSonDataBaseReader implements DatabaseReader {
         ((RecordTableState)mState).handle(colMetadataMap);
 
         return mCurrentRecord;
+    }
+
+    @Override
+    public void close() {
+        if (!mJp.isClosed()){
+            IOUtils.closeQuietly(mJp);
+        }
     }
 
     private String readNextTokenAsString() throws IOException {
@@ -166,7 +174,7 @@ public class JSonDataBaseReader implements DatabaseReader {
                 throw new IOException("Unable to read tables section");
             }
 
-            mDatabaseReaded = new DatabaseReaded(databaseName, formatVersion, tableCount);
+            mDatabase = new Database(databaseName, formatVersion, tableCount);
 
             // The first token is [
             if(mJp.nextToken() != JsonToken.START_ARRAY){
@@ -231,7 +239,7 @@ public class JSonDataBaseReader implements DatabaseReader {
                 throw new IOException("Unable to read start array of of records line:" + mJp.getCurrentLocation().getLineNr());
             }
 
-            mCurrentTable = new TableReaded(tableName, recordsCount);
+            mCurrentTable = new Table(tableName, recordsCount);
             mState = new RecordTableState();
         }
     }
@@ -294,7 +302,7 @@ public class JSonDataBaseReader implements DatabaseReader {
                 }
 
                 // Consume other token to detec end of database
-                // if START_OBJECT -> new Table
+                // if START_OBJECT -> new TableToSync
                 // if END_ARRAY -> end of database
                 mJp.nextToken();
                 if (mJp.getCurrentToken() == JsonToken.START_OBJECT) {
