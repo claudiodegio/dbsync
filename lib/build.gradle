@@ -33,4 +33,5 @@ dependencies {
     // Google play services gdrive edition
     compile 'com.google.android.gms:play-services-drive:10.0.1'
     compile 'commons-io:commons-io:2.5'
+    compile 'org.apache.commons:commons-collections4:4.1'
 }

@@ -24,6 +24,7 @@ public class DBSync {
 
     final private CloudProvider mCloudProvider;
     final private SQLiteDatabase mDB;
+    final private SqlLiteManager mManager;
     final private List<TableToSync> mTables;
     final private Context mCtx;
     final private String mDataBaseName;
@@ -34,6 +35,7 @@ public class DBSync {
         this.mDB = db;
         this.mTables = tables;
         this.mDataBaseName = dataBaseName;
+        mManager = new SqlLiteManager(mDB);
     }
 
     // TODO fare la versione sincrona e async
@@ -42,21 +44,22 @@ public class DBSync {
         InputStream inputStream = null;
 
         try {
-            // upload
-          //  inputStream = mCloudProvider.downloadFile();
+            // Download the file from cloud
+            inputStream = mCloudProvider.downloadFile();
 
-          //  readDatabase(inputStream);
+            // Sync the database
+            syncDatabase(inputStream);
 
-        /*    // populateUUID
+            /*// populateUUID
             populateUUID();
-*/
+
             // Write the database file
             tempFbFile = writeDateBaseFile();
 
             // Upload file to cloud
-           mCloudProvider.uploadFile(tempFbFile);
-
-            // ALL OK
+            mCloudProvider.uploadFile(tempFbFile);
+*/
+             // ALL OK
             return new SyncResult(new SyncStatus(SyncStatus.OK));
         } catch (SyncException e) {
             return new SyncResult(e.getStatus());
@@ -190,45 +193,37 @@ public class DBSync {
     }
 
 
-    private void readDatabase(final InputStream inputStream) {
+    /**
+     * Funzion to start sync of cloud database ad local
+     * @param inputStream
+     */
+    private DatabaseCounter syncDatabase(final InputStream inputStream) {
         JSonDatabaseReader reader = null;
-        Database dbReaded;
-        Table dbTable;
-        Record dbRecord;
-        Map<String, ColumnMetadata> columns = null;
+        DatabaseCounter counter = null;
 
         try {
-            System.out.println("-----");
-
+            // Create the new database reader
             reader = new JSonDatabaseReader(inputStream);
 
-            int elementType;
-            while ((elementType = reader.nextElement()) != JSonDatabaseReader.END) {
-                System.out.println(elementType);
-                switch (elementType) {
-                    case JSonDatabaseReader.START_DB:
-                        dbReaded = reader.readDatabase();
-                        System.out.println(dbReaded.toString());
-                        break;
-                    case JSonDatabaseReader.START_TABLE:
-                        dbTable = reader.readTable();
-                        System.out.println(dbTable.toString());
-                        columns = SqlLiteUtility.readTableMetadataAsMap(mDB, dbTable.getName());
-                        break;
-                    case JSonDatabaseReader.RECORD:
-                        dbRecord = reader.readRecord(columns);
-                        System.out.println(dbRecord.toString());
-                        break;
-                }
-            }
+            // Start sync procedure with a the last timestamp
+            counter = mManager.syncDatabase(reader, mTables, 0);
 
-            System.out.println("-----");
+            for (String table : counter.getTableSynced()) {
+                RecordCounter tableCounter = counter.getTableCounter(table);
+                System.out.println("tableName: " + table);
+                System.out.println("insert:" + tableCounter.getRecordInserted());
+                System.out.println("update:" + tableCounter.getRecordUpdated());
+
+            }
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println(e.getMessage());
+            // if the sync procedure generate an IOException i convert it
+            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, e);
         } finally {
-            reader.close();
+            if (reader != null) {
+                reader.close();
+            }
         }
+        return counter;
     }
     public static class Builder {
 

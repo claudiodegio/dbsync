@@ -118,7 +118,7 @@ public class GDriveCloudProvider implements CloudProvider {
             if (driveContents != null) {
                 driveContents.discard(mGoogleApiClient);
             }
-            throw new SyncException(SyncStatus.ERROR_DOWNLOAD_CLOUD, "Error reading file to GDrive message:" + e.getMessage());
+            throw new SyncException(SyncStatus.ERROR_DOWNLOAD_CLOUD, "Error reading file from GDrive message:" + e.getMessage());
         }
     }
 

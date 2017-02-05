@@ -5,9 +5,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SqlLiteUtility {
 
@@ -100,5 +104,58 @@ public class SqlLiteUtility {
         }
 
         return value;
+    }
+
+    static SqlWithBinding sqlWithMapToSqlWithBinding(final String sql){
+        String sqlWithBind;
+        List<String> selectionArg;
+        Pattern p;
+        Matcher m;
+
+        // Find the binding params
+        p = Pattern.compile(":([\\w]+)");
+        m = p.matcher(sql);
+
+        selectionArg = new ArrayList<>();
+        while (m.find()) {
+            selectionArg.add(m.group(1));
+        }
+
+        sqlWithBind = sql.replaceAll(":([\\w]+)", "?");
+
+        return new SqlWithBinding(sql, sqlWithBind, selectionArg);
+    }
+
+    static public class SqlWithBinding {
+        private String original;
+        private String parsed;
+        private List<String> selectionArgs;
+
+        private SqlWithBinding(String original, String parsed, List<String> selectionArgs) {
+            this.original = original;
+            this.parsed = parsed;
+            this.selectionArgs = selectionArgs;
+        }
+
+        public String getParsed() {
+            return parsed;
+        }
+
+        public String getOriginal() {
+            return original;
+        }
+
+        public String [] getArgs(){
+            return selectionArgs.toArray( new String[selectionArgs.size()]);
+        }
+
+        @Override
+        public String toString() {
+            return "SqlWithBinding{" +
+                    "original='" + original + '\'' +
+                    ", parsed='" + parsed + '\'' +
+                    ", selectionArgs=" + selectionArgs +
+                    '}';
+        }
     }
 }

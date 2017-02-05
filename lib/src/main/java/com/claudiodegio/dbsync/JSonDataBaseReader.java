@@ -270,7 +270,7 @@ public class JSonDatabaseReader implements DatabaseReader {
 
                     // Get column metadata
                     if (!colMetadataMap.containsKey(fieldName)){
-                        throw new IOException("Unble to find columns metadata for columns " + fieldName);
+                        throw new IOException("Unable to find columns metadata for columns " + fieldName);
                     }
 
                     columnMetadata = colMetadataMap.get(fieldName);
@@ -282,9 +282,6 @@ public class JSonDatabaseReader implements DatabaseReader {
                     mCurrentRecord.add(value);
                 }
 
-
-                // Parse
-                System.out.println(mJp.getCurrentToken() + " - " + mJp.getCurrentName());
             }
 
             // Go to next token
