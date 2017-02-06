@@ -41,6 +41,17 @@ public class ColumnValue {
         return mNull;
     }
 
+    public String toSelectionArg(){
+        switch (mMetadata.getType()) {
+            case ColumnMetadata.TYPE_LONG:
+                return Long.toString(mValueLong);
+            case ColumnMetadata.TYPE_STRING:
+                return mValueString;
+            default:
+                return null;
+        }
+    }
+
     @Override
     public String toString() {
         if (isNull()) {

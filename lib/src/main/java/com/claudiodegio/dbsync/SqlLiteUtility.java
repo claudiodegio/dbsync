@@ -1,8 +1,11 @@
 package com.claudiodegio.dbsync;
 
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
+import com.google.android.gms.drive.Metadata;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -104,6 +107,23 @@ public class SqlLiteUtility {
         }
 
         return value;
+    }
+
+    public static void columnValueToContentValues(final ColumnValue value, final ContentValues contentValues) {
+        ColumnMetadata metadata;
+        String fieldName;
+
+        fieldName = value.getMetadata().getName();
+        metadata = value.getMetadata();
+
+        switch (metadata.getType()) {
+            case ColumnMetadata.TYPE_LONG:
+                contentValues.put(fieldName, value.getValueLong());
+                break;
+            case ColumnMetadata.TYPE_STRING:
+                contentValues.put(fieldName, value.getValueString());
+                break;
+        }
     }
 
     static SqlWithBinding sqlWithMapToSqlWithBinding(final String sql){

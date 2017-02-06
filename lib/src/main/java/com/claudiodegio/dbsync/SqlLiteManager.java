@@ -1,8 +1,10 @@
 package com.claudiodegio.dbsync;
 
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.apache.commons.collections4.Closure;
@@ -94,7 +96,7 @@ public class SqlLiteManager {
         ColumnValue valueLastUpdated;
         long dateCreated;
         long lastUpdated;
-        Long dbId;
+        Long dbId = null;
 
         valueDateCreated = record.findField(tableDefinition.getDateCreatedColumn());
 
@@ -110,13 +112,12 @@ public class SqlLiteManager {
         }
         lastUpdated = valueLastUpdated.getValueLong();
 
-
         // Check if record it to update
         if (dateCreated > lastSyncTimestamp || lastUpdated > lastSyncTimestamp) {
             // The record it's to update, find the match rules
 
             for (String rule : tableDefinition.getMatchRules()) {
-                dbId = findDatabaseIdByMatchRule(rule, tableDefinition.getIdColumn(), record);
+                dbId = findDatabaseIdByMatchRule(rule, tableDefinition, record);
 
                 // If found a match i can break the loop
                 if (dbId != null) {
@@ -124,6 +125,14 @@ public class SqlLiteManager {
                 }
             }
 
+            if (dbId == null) {
+                // Insert
+            } else {
+                // Update
+                updateRecordIntoDatabase(dbId, tableDefinition, record);
+               //  counter.getTableCounter(tableDefinition.getName()).incrementRecordUpdated();
+               // counter.incrementRecordUpdated();
+            }
 
 
         } else {
@@ -132,25 +141,72 @@ public class SqlLiteManager {
     }
 
 
-    private Long findDatabaseIdByMatchRule(final String rule, final String columnId, final Record record){
+    @Nullable
+    private Long findDatabaseIdByMatchRule(final String rule, final TableToSync tableToSync, final Record record){
         String sql;
-        Cursor cur;
+        String cloudId;
+        Cursor cur = null;
         SqlWithBinding sqlWithBinding;
+        String [] args;
 
         // Build the sql
+        sql = "SELECT " + tableToSync.getIdColumn() + " FROM " + tableToSync.getName() + " WHERE " + rule;
 
-        sql = "SELECT " + columnId + " FROM WHERE " + rule;
-
-        // System.out.println(sql);
-
-        // mDb.rawQuery()
-
+        // Extract the binding
         sqlWithBinding = SqlLiteUtility.sqlWithMapToSqlWithBinding(sql);
 
+        System.out.println( sqlWithBinding);
+        args = new String[sqlWithBinding.getArgs().length];
 
-        System.out.println(sqlWithBinding);
+        // Extract selection args fomr record
+        for (int i = 0;  i < sqlWithBinding.getArgs().length; ++i) {
+            String fieldToBind = sqlWithBinding.getArgs()[i];
+            ColumnValue value = record.findField(fieldToBind);
+            args[i] = value.toSelectionArg();
+        }
 
+        try {
+            cloudId = record.findField(tableToSync.getCloudIdColumn()).getValueString();
 
-        return null;
+            // Find the id
+            cur = mDb.rawQuery(sqlWithBinding.getParsed(), args);
+
+            if (cur.getCount() > 1) {
+                throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Found more match with record with cloudId: "  + cloudId + " and match rule: " + rule);
+            }
+
+            if (cur.getCount() == 0) {
+                return null;
+            }
+
+            cur.moveToNext();
+            return cur.getLong(0);
+        } catch (Exception e) {
+           throw e;
+        } finally {
+            if (cur != null) {
+                cur.close();
+            }
+        }
+    }
+
+    private void updateRecordIntoDatabase(final Long id, final TableToSync tableToSync, final Record record){
+        ContentValues contentValues;
+        String whereClause;
+
+        contentValues = new ContentValues();
+
+        for (ColumnValue value : record) {
+            // Ignore id columns
+            String fieldName = value.getMetadata().getName();
+
+            if (!fieldName.equals(tableToSync.getIdColumn())) {
+                SqlLiteUtility.columnValueToContentValues(value, contentValues);
+            }
+        }
+
+        whereClause = tableToSync.getIdColumn() + " = ?";
+
+        mDb.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(id) });
     }
 }
