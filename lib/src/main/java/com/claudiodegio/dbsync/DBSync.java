@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -42,13 +43,14 @@ public class DBSync {
     public SyncResult sync() {
         File tempFbFile = null;
         InputStream inputStream = null;
+        DatabaseCounter counter;
 
         try {
             // Download the file from cloud
             inputStream = mCloudProvider.downloadFile();
 
             // Sync the database
-            syncDatabase(inputStream);
+            counter = syncDatabase(inputStream);
 
             /*// populateUUID
             populateUUID();
@@ -60,15 +62,12 @@ public class DBSync {
             mCloudProvider.uploadFile(tempFbFile);
 */
              // ALL OK
-            return new SyncResult(new SyncStatus(SyncStatus.OK));
+            return new SyncResult(new SyncStatus(SyncStatus.OK), counter);
         } catch (SyncException e) {
             return new SyncResult(e.getStatus());
         } catch (Exception e) {
-            // TODO capire se lanciare un eccezione o ritorno con errore
             return new SyncResult(new SyncStatus(SyncStatus.ERROR, e.getMessage()));
         } finally {
-
-            IOUtils.closeQuietly(inputStream);
             if (tempFbFile != null && tempFbFile.exists()) {
                 Log.d(TAG, "delete db temp file:" + tempFbFile.getName());
             }
@@ -207,14 +206,6 @@ public class DBSync {
 
             // Start sync procedure with a the last timestamp
             counter = mManager.syncDatabase(reader, mTables, 0);
-
-            for (String table : counter.getTableSynced()) {
-                RecordCounter tableCounter = counter.getTableCounter(table);
-                System.out.println("tableName: " + table);
-                System.out.println("insert:" + tableCounter.getRecordInserted());
-                System.out.println("update:" + tableCounter.getRecordUpdated());
-
-            }
         } catch (IOException e) {
             // if the sync procedure generate an IOException i convert it
             throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, e);

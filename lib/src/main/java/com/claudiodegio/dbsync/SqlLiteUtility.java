@@ -114,6 +114,12 @@ public class SqlLiteUtility {
         String fieldName;
 
         fieldName = value.getMetadata().getName();
+
+        if (value.isNull()) {
+            contentValues.putNull(fieldName);
+            return;
+        }
+
         metadata = value.getMetadata();
 
         switch (metadata.getType()) {

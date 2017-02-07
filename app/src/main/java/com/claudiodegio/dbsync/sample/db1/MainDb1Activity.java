@@ -223,7 +223,7 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
 
         @Override
         protected void onPostExecute(SyncResult result) {
-            Toast.makeText(app, "result: " + result.getStatus().getStatusCode() + " message:" + result.getStatus().getStatusMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(app, "result: " + result.getStatus().getStatusCode() + " message:" + result.getStatus().getStatusMessage() + " insert: " + result.getCounter().getRecordInserted()+ " update: " + result.getCounter().getRecordUpdated(), Toast.LENGTH_SHORT).show();
         }
     }
 

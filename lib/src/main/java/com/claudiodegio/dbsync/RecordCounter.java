@@ -17,14 +17,6 @@ public class RecordCounter {
         return mRecordUpdated;
     }
 
-    public void incrementRecordUpdated(int numOfRecord){
-        this.mRecordUpdated += numOfRecord;
-    }
-
-    public void incrementRecordInserted(int numOfRecord){
-        this.mRecordInserted += numOfRecord;
-    }
-
     public void incrementRecordUpdated(){
         this.mRecordUpdated += 1;
     }

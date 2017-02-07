@@ -20,7 +20,12 @@ public class DatabaseCounter extends RecordCounter{
         return mCounterTable.keySet();
     }
 
-    public RecordCounter getTableCounter(final String tableName) {
+    public RecordCounter findOrCreateTableCounter(final String tableName) {
+
+        if (!mCounterTable.containsKey(tableName)) {
+            mCounterTable.put(tableName, new RecordCounter());
+        }
+
         return mCounterTable.get(tableName);
     }
 }
