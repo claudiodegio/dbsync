@@ -62,7 +62,7 @@ public class InsertNameActivity extends BaseActivity {
         } else {
             contentValues.put("NAME", mETName.getEditableText().toString());
         }
-        contentValues.put("DATE_CREATED", System.currentTimeMillis());
+        contentValues.putNull("SEND_TIME");
 
         mDB.insert("name", null, contentValues);
 
@@ -79,7 +79,7 @@ public class InsertNameActivity extends BaseActivity {
         } else {
             contentValues.put("NAME", mETName.getEditableText().toString());
         }
-        contentValues.put("LAST_UPDATED", System.currentTimeMillis());
+        contentValues.putNull("SEND_TIME");
 
         mDB.update("name", contentValues, "_id = ? ", new String[] {Long.toString(mId)});
 

@@ -39,4 +39,8 @@ public class SyncStatus {
     public String getStatusMessage() {
         return mMessage;
     }
+
+    public boolean isSuccess(){
+        return mStatusCode == OK;
+    }
 }

@@ -19,8 +19,7 @@ public class Db1OpenHelper extends SQLiteOpenHelper {
     private static final String DDL = "CREATE TABLE name (\n" +
             "    _id          INTEGER PRIMARY KEY,\n" +
             "    NAME         TEXT,\n" +
-            "    DATE_CREATED INTEGER NOT NULL,\n" +
-            "    LAST_UPDATED INTEGER,\n" +
+            "    SEND_TIME INTEGER,\n" +
             "    CLOUD_ID     TEXT    UNIQUE);";
 
     public Db1OpenHelper(Context context) {

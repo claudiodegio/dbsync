@@ -134,7 +134,7 @@ public class TableViewerFragment extends Fragment implements TableDataClickListe
 
         int headerCount = cursor.getColumnNames().length;
 
-        TableColumnDpWidthModel  model = new TableColumnDpWidthModel(getActivity(), headerCount, 150);
+        TableColumnDpWidthModel  model = new TableColumnDpWidthModel(getActivity(), headerCount, 200);
         model.setColumnWidth(0, 50);
 
         mTableView.setColumnModel(model);

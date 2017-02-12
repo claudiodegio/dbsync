@@ -11,6 +11,7 @@
     </FrameLayout>
 
 
+
     <TextView
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
@@ -18,6 +19,11 @@
 
     <TextView
         android:id="@+id/tvStatus2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/tvLastTimeStamp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
@@ -37,6 +43,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/btToDbManager" />
+
+        <Button
+            android:id="@+id/btResetLastSyncTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset TS"
+            android:enabled="false"/>
 
 
     </LinearLayout>
@@ -61,5 +74,12 @@
             android:text="Select File For Sync"
             android:enabled="false"/>
 
+
+
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvCurrentTime" />
 </LinearLayout>

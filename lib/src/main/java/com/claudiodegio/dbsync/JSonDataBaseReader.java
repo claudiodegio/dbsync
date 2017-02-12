@@ -261,7 +261,7 @@ public class JSonDatabaseReader implements DatabaseReader {
             JSonConverter converter;
             ColumnValue value;
 
-            // Creare a new record
+            // Create a new record
             mCurrentRecord = new Record();
             while (mJp.nextToken() != JsonToken.END_OBJECT) {
 
@@ -298,7 +298,7 @@ public class JSonDatabaseReader implements DatabaseReader {
                     throw new IOException("Unable to read end of table expected end of object line :" + mJp.getCurrentLocation().getLineNr());
                 }
 
-                // Consume other token to detec end of database
+                // Consume other token to dete end of database
                 // if START_OBJECT -> new TableToSync
                 // if END_ARRAY -> end of database
                 mJp.nextToken();
@@ -307,7 +307,7 @@ public class JSonDatabaseReader implements DatabaseReader {
                 } else if (mJp.getCurrentToken() == JsonToken.END_ARRAY) {
                     mState = new EndState();
                 } else {
-                    throw new IOException("Unable to read start of table expected { or ] òine:" + mJp.getCurrentLocation().getLineNr());
+                    throw new IOException("Unable to read start of table expected { or ] line:" + mJp.getCurrentLocation().getLineNr());
                 }
             } else {
                 throw new IOException("Unexpected token " + mJp.getCurrentToken() + " line:" + mJp.getCurrentLocation().getLineNr());

@@ -9,8 +9,7 @@ public class TableToSync {
     private List<String> mIgnoreColumns;
     private String mCloudIdColumn;
     private String mIdColumn;
-    private String mDateCreatedColumn;
-    private String mLastUpdatedColumn;
+    private String mSendTimeColumn;
     private List<String> mMatchRules;
 
     private TableToSync(final String name){
@@ -19,8 +18,7 @@ public class TableToSync {
         this.mIgnoreColumns.add("_id");
         this.mCloudIdColumn = "CLOUD_ID";
         this.mIdColumn = "_id";
-        this.mDateCreatedColumn = "DATE_CREATED";
-        this.mLastUpdatedColumn = "LAST_UPDATED";
+        this.mSendTimeColumn = "SEND_TIME";
         this.mMatchRules = new ArrayList<>(1);
         this.mMatchRules.add("CLOUD_ID = :CLOUD_ID");
     }
@@ -41,12 +39,8 @@ public class TableToSync {
         return mIdColumn;
     }
 
-    public String getDateCreatedColumn() {
-        return mDateCreatedColumn;
-    }
-
-    public String getLastUpdatedColumn() {
-        return mLastUpdatedColumn;
+    public String getSendTimeColumn() {
+        return mSendTimeColumn;
     }
 
     public List<String> getMatchRules(){

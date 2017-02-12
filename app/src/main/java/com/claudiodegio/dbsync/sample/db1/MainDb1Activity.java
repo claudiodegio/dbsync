@@ -9,6 +9,7 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -31,6 +32,11 @@ import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.OpenFileActivityBuilder;
 
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -52,14 +58,24 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
     TextView mTvStatus;
     @BindView(R.id.tvStatus2)
     TextView mTvStatus2;
+    @BindView(R.id.tvLastTimeStamp)
+    TextView mTvLastSyncTimestamp;
+    @BindView(R.id.tvCurrentTime)
+    TextView mTvCurrentTime;
+
 
     @BindView(R.id.btSync)
     Button mBtSync;
     @BindView(R.id.btSelectFileForSync)
     Button mBtSelectFileForSync;
+    @BindView(R.id.btResetLastSyncTimestamp)
+    Button mBtResetLastSyncTimestamp;
 
     private DriveId mDriveId;
     private DBSync dbSync;
+
+    private  DateFormat mDateFormat;
+    private  Handler mMainHandler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,7 +98,12 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
                 .addOnConnectionFailedListener(this)
                 .build();
 
+        mDateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SSS");
+        mDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+0"));
 
+         mMainHandler = new Handler();
+
+        mMainHandler.post(new UpdateCurrentTime());
     }
 
     @OnClick(R.id.btToDbManager)
@@ -98,6 +119,7 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
     @OnClick(R.id.btSync)
     public void startDbSync(){
 
+        mTvStatus.setText("In Progress");
 
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder()
                 .setSyncFileByDriveId(mDriveId)
@@ -110,7 +132,6 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
                 .setDataBaseName(app.db1OpenHelper.getDatabaseName())
                 .addTable(new TableToSync.Builder("name").build())
                 .build();
-
 
         new SyncTask().execute();
       }
@@ -154,6 +175,7 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
             mDriveId = DriveId.decodeFromString(driveId);
             mTvStatus2.setText("GDrive Client - Connected - File Selected");
             mBtSync.setEnabled(true);
+            mBtResetLastSyncTimestamp.setEnabled(true);
         }
     }
 
@@ -180,6 +202,7 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
 
                 mTvStatus2.setText("GDrive Client - Connected - File Selected");
                 mBtSync.setEnabled(true);
+                mBtResetLastSyncTimestamp.setEnabled(true);
                 break;
         }
     }
@@ -223,8 +246,51 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
 
         @Override
         protected void onPostExecute(SyncResult result) {
-            Toast.makeText(app, "result: " + result.getStatus().getStatusCode() + " message:" + result.getStatus().getStatusMessage() + " insert: " + result.getCounter().getRecordInserted()+ " update: " + result.getCounter().getRecordUpdated(), Toast.LENGTH_SHORT).show();
+
+            if (result.getStatus().isSuccess()) {
+                mTvStatus.setText("OK\nInsert: " +  result.getCounter().getRecordInserted() + "\nUpdate: " +  result.getCounter().getRecordUpdated());
+                updateLastSyncTimeStamp();
+            } else {
+                mTvStatus.setText("Fail: " + result.getStatus().getStatusCode() + "\n" + result.getStatus().getStatusMessage());
+                mTvLastSyncTimestamp.setText("");
+            }
+
+           // Toast.makeText(app, "Completed", Toast.LENGTH_SHORT).show();
+            mFragment.reload();
         }
     }
 
+
+    private void updateLastSyncTimeStamp(){
+
+        if (dbSync != null) {
+            long lastSyncStatus = dbSync.getLastSyncTimestamp();
+
+            Date date = new Date(lastSyncStatus);
+
+            mTvLastSyncTimestamp.setText("Timestamp: " + lastSyncStatus + " - " +mDateFormat.format(date));
+
+        }
+
+    }
+
+    @OnClick(R.id.btResetLastSyncTimestamp)
+    public void resetLastSyncTimestamp(){
+
+        if (dbSync != null) {
+            dbSync.resetLastSyncTimestamp();
+            updateLastSyncTimeStamp();
+        }
+    }
+
+
+    class UpdateCurrentTime implements Runnable {
+
+        @Override
+        public void run() {
+            mTvCurrentTime.setText("CurrentTime: " +mDateFormat.format(new Date()));
+
+            mMainHandler.postDelayed(this, 500);
+        }
+    }
 }

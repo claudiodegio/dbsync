@@ -7,16 +7,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import org.apache.commons.collections4.Closure;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
-import org.apache.commons.collections4.functors.ForClosure;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import com.claudiodegio.dbsync.SqlLiteUtility.SqlWithBinding;
 
 /**
@@ -31,9 +29,11 @@ public class SqlLiteManager {
     private final static String TAG = "SqlLiteManager";
 
     final private SQLiteDatabase mDb;
+    @DBSync.ConflictPolicy final private int mConflictPolicy;
 
-    public SqlLiteManager(SQLiteDatabase db) {
+    public SqlLiteManager(SQLiteDatabase db, int conflictPolicy) {
         this.mDb = db;
+        this.mConflictPolicy = conflictPolicy;
     }
 
 
@@ -51,7 +51,6 @@ public class SqlLiteManager {
         Log.i(TAG, "start syncDatabase");
 
         // TODO check database name
-        // TODO open TX
         try {
             // Open the TX
             mDb.beginTransaction();
@@ -101,29 +100,20 @@ public class SqlLiteManager {
 
     private void syncRecord(final TableToSync tableToSync, final Record record, final DatabaseCounter counter, long lastSyncTimestamp){
 
-        ColumnValue valueDateCreated;
-        ColumnValue valueLastUpdated;
+        ColumnValue valueSendTime;
         ColumnValue valueCloudId;
 
-        long dateCreated;
-        long lastUpdated;
-        Long dbId = null;
+        long sendTime;
+        DBRecordMatch dbRecordMatch = null;
         RecordCounter tableCounter;
         int indexMatchRule;
 
         Log.v(TAG, "syncRecord called: record = " + record + ", tableName = [" + tableToSync.getName() + "], lastSyncTimestamp = [" + lastSyncTimestamp + "]");
 
-        valueDateCreated = record.findField(tableToSync.getDateCreatedColumn());
+        valueSendTime = record.findField(tableToSync.getSendTimeColumn());
 
-        if (valueDateCreated == null) {
-            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getDateCreatedColumn() + " into cloud DB record");
-        }
-        dateCreated = valueDateCreated.getValueLong();
-
-        valueLastUpdated = record.findField(tableToSync.getLastUpdatedColumn());
-
-        if (valueLastUpdated == null) {
-            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getLastUpdatedColumn() + " into cloud DB record");
+        if (valueSendTime == null) {
+            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getSendTimeColumn() + " into cloud DB record");
         }
 
         valueCloudId = record.findField(tableToSync.getCloudIdColumn());
@@ -132,27 +122,27 @@ public class SqlLiteManager {
             throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getCloudIdColumn() + " into cloud DB record");
         }
 
-        lastUpdated = valueLastUpdated.getValueLong();
+        sendTime = valueSendTime.getValueLong();
 
         // Create table counter if non defined
         tableCounter = counter.findOrCreateTableCounter(tableToSync.getName());
 
-        // Check if record it to update
-        if (dateCreated > lastSyncTimestamp || lastUpdated > lastSyncTimestamp) {
-
+        // Check if record it new or not
+        if (sendTime >= lastSyncTimestamp) {
+            // New Record, find match rule to detect is to insert or update
             for (indexMatchRule = 0 ; indexMatchRule < tableToSync.getMatchRules().size(); ++indexMatchRule) {
                 String rule = tableToSync.getMatchRules().get(indexMatchRule);
 
-                dbId = findDatabaseIdByMatchRule(rule, tableToSync, record);
+                dbRecordMatch = findDatabaseIdByMatchRule(rule, tableToSync, record);
 
                 // If found a match i can break the loop
-                if (dbId != null) {
+                if (dbRecordMatch != null) {
                     break;
                 }
             }
 
-            if (dbId == null) {
-                // Insert
+            if (dbRecordMatch == null) {
+                // Insert no more check no conflict
                 Log.v(TAG, "syncRecord: insert new record with cloudId:" + valueCloudId.getValueString());
 
                 insertRecordIntoDatabase(tableToSync, record);
@@ -160,30 +150,49 @@ public class SqlLiteManager {
                 counter.incrementRecordInserted();
             } else {
                 // Update
-                Log.v(TAG, "syncRecord: update new record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbId + " (match rule" + (indexMatchRule+1) + ")");
 
-                updateRecordIntoDatabase(dbId, tableToSync, record);
-                tableCounter.incrementRecordUpdated();
-                counter.incrementRecordUpdated();
+                // Check for possible conflict
+                if (dbRecordMatch.getSendTime() == null && sendTime > lastSyncTimestamp) {
+                    // Conflict of data
+                    if (mConflictPolicy == DBSync.SERVER) {
+                        // perform update only if server version wins
+                        Log.v(TAG, "syncRecord: update conflict record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch.getId() + " (match rule" + (indexMatchRule+1) + ")");
+
+                        updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
+                        tableCounter.incrementRecordUpdated();
+                        counter.incrementRecordUpdated();
+                    } else {
+                        Log.v(TAG, "syncRecord: update ignored for conflict policy win server version");
+                    }
+                } else {
+                    // No conflict perform update
+                    Log.v(TAG, "syncRecord: update new record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch + " (match rule" + (indexMatchRule+1) + ")");
+
+                    updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
+                    tableCounter.incrementRecordUpdated();
+                    counter.incrementRecordUpdated();
+                }
             }
-
-
         } else {
+            // Old Record ignore it
             Log.v(TAG, "syncRecord: ignored for timestamp too old");
         }
     }
 
 
     @Nullable
-    private Long findDatabaseIdByMatchRule(final String rule, final TableToSync tableToSync, final Record record){
+    private DBRecordMatch findDatabaseIdByMatchRule(final String rule, final TableToSync tableToSync, final Record record){
         String sql;
         String cloudId;
         Cursor cur = null;
         SqlWithBinding sqlWithBinding;
         String [] args;
+        Long id, sendTime;
 
         // Build the sql
-        sql = "SELECT " + tableToSync.getIdColumn() + " FROM " + tableToSync.getName() + " WHERE " + rule;
+        sql = "SELECT " + tableToSync.getIdColumn()  + ","
+                +  tableToSync.getSendTimeColumn() +
+                " FROM " + tableToSync.getName() + " WHERE " + rule;
 
         // Extract the binding
         sqlWithBinding = SqlLiteUtility.sqlWithMapToSqlWithBinding(sql);
@@ -198,12 +207,12 @@ public class SqlLiteManager {
         }
 
         try {
-            cloudId = record.findField(tableToSync.getCloudIdColumn()).getValueString();
 
             // Find the id
             cur = mDb.rawQuery(sqlWithBinding.getParsed(), args);
 
             if (cur.getCount() > 1) {
+                cloudId = record.findField(tableToSync.getCloudIdColumn()).getValueString();
                 throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Found more match with record with cloudId: "  + cloudId + " and match rule: " + rule);
             }
 
@@ -212,7 +221,12 @@ public class SqlLiteManager {
             }
 
             cur.moveToNext();
-            return cur.getLong(0);
+
+            id = cur.getLong(0);
+
+            sendTime = cur.getLong(1);
+
+            return new DBRecordMatch(id, sendTime);
         } catch (Exception e) {
            throw e;
         } finally {
@@ -222,7 +236,7 @@ public class SqlLiteManager {
         }
     }
 
-    private void updateRecordIntoDatabase(final Long id, final TableToSync tableToSync, final Record record){
+    private void updateRecordIntoDatabase(final DBRecordMatch dbRecordMatch, final TableToSync tableToSync, final Record record){
         ContentValues contentValues;
         String whereClause;
 
@@ -239,7 +253,7 @@ public class SqlLiteManager {
 
         whereClause = tableToSync.getIdColumn() + " = ?";
 
-        mDb.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(id) });
+        mDb.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
     }
 
 
@@ -259,5 +273,92 @@ public class SqlLiteManager {
 
 
         mDb.insert(tableToSync.getName(), null, contentValues);
+    }
+
+    public void populateUUID(final List<TableToSync> tables){
+        for (TableToSync table : tables) {
+            populateUUID(table);
+        }
+    }
+
+    private void populateUUID(TableToSync table) {
+        String selection;
+        Cursor cur = null;
+        String uuid;
+        int id;
+        int rowCount;
+        ContentValues contentValuesUpdate;
+        Log.i(TAG, "start populateUUID for table:" + table.getName() + " idColumn:" + table.getIdColumn() + " CloudIdColumn:" + table.getCloudIdColumn());
+
+        selection = table.getCloudIdColumn() + " IS NULL OR " + table.getCloudIdColumn() + " = \"\"";
+
+        try {
+            cur = mDb.query(table.getName(), new String[]{table.getIdColumn()}, selection, null, null, null, null);
+
+            rowCount = 0;
+            contentValuesUpdate = new ContentValues();
+
+            // TODO check uuid it'unique
+            while (cur.moveToNext()) {
+                id = cur.getInt(0);
+                uuid = UUID.randomUUID().toString();
+
+                Log.d(TAG, "assign uuid:" + uuid + " to id:" + id);
+                // Update of cloud id
+                contentValuesUpdate.put(table.getCloudIdColumn(), uuid);
+
+                mDb.update(table.getName(), contentValuesUpdate, table.getIdColumn() + " = ?", new String[]{Integer.toString(id)});
+                rowCount++;
+            }
+
+            Log.i(TAG, "end populateUUID rows updated:" + rowCount);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (cur != null) {
+                cur.close();
+            }
+        }
+    }
+
+    public void populateSendTime(long sendTimestamp, final List<TableToSync> tables) {
+        for (TableToSync table : tables) {
+            populateSendTime(sendTimestamp, table);
+        }
+    }
+
+    private void populateSendTime(long sendTimestamp, final TableToSync table) {
+        int rowUpdated;
+        String where;
+        ContentValues contentValues;
+
+        Log.i(TAG, "start populateSendTime for table:" + table.getName() + " sendTable:" + table.getSendTimeColumn());
+
+        where = table.getSendTimeColumn() + " IS NULL";
+
+        contentValues = new ContentValues();
+        contentValues.put(table.getSendTimeColumn(), sendTimestamp);
+
+        rowUpdated = mDb.update(table.getName(), contentValues,  where, null);
+
+        Log.i(TAG, "end populateUUID  updated record:" + rowUpdated);
+    }
+
+    class DBRecordMatch {
+        private Long mId;
+        private Long mSendTime;
+
+        public DBRecordMatch(Long id,  Long sendTime) {
+            this.mId = id;
+            this.mSendTime = sendTime;
+        }
+
+        public Long getSendTime() {
+            return mSendTime;
+        }
+
+        public Long getId() {
+            return mId;
+        }
     }
 }
