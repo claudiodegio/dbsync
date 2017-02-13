@@ -28,7 +28,7 @@ public class DBSync {
     final private Context mCtx;
     final private String mDataBaseName;
     @ConflictPolicy final private int mConflictPolicy;
-
+    private int mThresholdSeconds = 0;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({SERVER, CLIENT})
@@ -36,14 +36,15 @@ public class DBSync {
     static final int SERVER = 1;
     static final int CLIENT = 2;
 
-    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, @ConflictPolicy int conflictPolicy){
+    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, @ConflictPolicy int conflictPolicy, int thresholdSeconds){
         this.mCtx = ctx;
         this.mCloudProvider = cloudProvider;
         this.mDB = db;
         this.mTables = tables;
         this.mDataBaseName = dataBaseName;
-        this.mManager = new SqlLiteManager(mDB, conflictPolicy);
+        this.mManager = new SqlLiteManager(mDB, conflictPolicy, thresholdSeconds);
         this.mConflictPolicy = conflictPolicy;
+        this.mThresholdSeconds = thresholdSeconds;
     }
 
     // TODO fare la versione sincrona e async
@@ -245,6 +246,7 @@ public class DBSync {
         private List<TableToSync> mTables = new ArrayList<>();
         private Context mCtx;
         @ConflictPolicy private int mConflictPolicy = SERVER;
+        private int mThresholdSeconds = 300;
 
         public Builder(final Context ctx) {
             this.mCtx = ctx;
@@ -276,8 +278,13 @@ public class DBSync {
             return this;
         }
 
+        public Builder setThresholdSeconds(int thresholdSeconds) {
+            this.mThresholdSeconds = thresholdSeconds;
+            return this;
+        }
+
         public DBSync build(){
-            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mConflictPolicy);
+            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mConflictPolicy, mThresholdSeconds);
         }
     }
 }

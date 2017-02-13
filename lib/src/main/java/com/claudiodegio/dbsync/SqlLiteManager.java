@@ -30,10 +30,14 @@ public class SqlLiteManager {
 
     final private SQLiteDatabase mDb;
     @DBSync.ConflictPolicy final private int mConflictPolicy;
+    final private int mThresholdSeconds;
 
-    public SqlLiteManager(SQLiteDatabase db, int conflictPolicy) {
+
+
+    public SqlLiteManager(SQLiteDatabase db, int conflictPolicy, int thresholdSeconds) {
         this.mDb = db;
         this.mConflictPolicy = conflictPolicy;
+        this.mThresholdSeconds = thresholdSeconds;
     }
 
 
@@ -128,7 +132,7 @@ public class SqlLiteManager {
         tableCounter = counter.findOrCreateTableCounter(tableToSync.getName());
 
         // Check if record it new or not
-        if (sendTime >= lastSyncTimestamp) {
+        if (sendTime > lastSyncTimestamp - mThresholdSeconds * 1000) {
             // New Record, find match rule to detect is to insert or update
             for (indexMatchRule = 0 ; indexMatchRule < tableToSync.getMatchRules().size(); ++indexMatchRule) {
                 String rule = tableToSync.getMatchRules().get(indexMatchRule);

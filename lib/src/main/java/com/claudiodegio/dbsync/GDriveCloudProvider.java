@@ -12,7 +12,9 @@ import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.DriveResource.MetadataResult;
+import com.google.android.gms.drive.ExecutionOptions;
 import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataChangeSet;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -43,6 +45,7 @@ public class GDriveCloudProvider implements CloudProvider {
         DriveContents driveContents = null;
         DriveContentsResult driveContentsResult;
         OutputStream outputStream;
+        ExecutionOptions executionOptions;
 
         Log.i(TAG, "start upload of DB file temp:" + tempFile.getName());
 
@@ -56,6 +59,10 @@ public class GDriveCloudProvider implements CloudProvider {
             metadata = metadataResult.getMetadata();
 
             Log.i(TAG, "try to upload of DB file:" + metadata.getOriginalFilename());
+
+            if (!metadata.isPinned()) {
+                pinFile(driveFile);
+            }
 
             // Writing file
             driveContentsResult = driveFile.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
@@ -71,7 +78,12 @@ public class GDriveCloudProvider implements CloudProvider {
 
             // Commit del file
             // TODO gestire il conflitto
-            driveContents.commit(mGoogleApiClient, null).await();
+            executionOptions = new ExecutionOptions.Builder()
+                    .setNotifyOnCompletion(true)
+                    .setConflictStrategy(ExecutionOptions.CONFLICT_STRATEGY_OVERWRITE_REMOTE)
+                    .build();
+
+            driveContents.commit(mGoogleApiClient, null, executionOptions).await();
 
             Log.i(TAG, "file committed");
 
@@ -81,7 +93,6 @@ public class GDriveCloudProvider implements CloudProvider {
             }
             throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive message:" + e.getMessage());
         }
-
     }
 
     @Override
@@ -126,6 +137,23 @@ public class GDriveCloudProvider implements CloudProvider {
         if (!result.getStatus().isSuccess()) {
             throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, result.getStatus().getStatusMessage());
         }
+    }
+
+
+    private void pinFile(final DriveFile file){
+        MetadataChangeSet changeSet;
+        MetadataResult metadataResult;
+
+
+        Log.i(TAG, "set file and pinned");
+
+        changeSet = new MetadataChangeSet.Builder()
+                .setPinned(true)
+                .build();
+
+        metadataResult = file.updateMetadata(mGoogleApiClient, changeSet).await();
+
+        checkStatus(metadataResult);
     }
 
     public static class Builder {
