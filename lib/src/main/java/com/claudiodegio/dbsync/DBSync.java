@@ -1,7 +1,10 @@
 package com.claudiodegio.dbsync;
 
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -54,29 +57,54 @@ public class DBSync {
         DatabaseCounter counter;
         long lastSyncTimestamp;
         long currentTimestamp;
+        int uploadStatus;
+        int attempt;
 
         try {
             // Read the last time stamp
             lastSyncTimestamp = getLastSyncTimestamp();
-
-            // Download the file from cloud
-            inputStream = mCloudProvider.downloadFile();
-
-            // Sync the database
-            counter = syncDatabase(inputStream, lastSyncTimestamp);
-
-            // populateUUID
-            mManager.populateUUID(mTables);
-
             // Generate the new sync timestamp
             currentTimestamp = System.currentTimeMillis();
-            mManager.populateSendTime(currentTimestamp, mTables);
+            counter = new DatabaseCounter();
 
-            // Write the database file
-            tempFbFile = writeDateBaseFile();
+            attempt = 0;
+            while (true) {
+                attempt++;
+                Log.i(TAG, "start sync try " + attempt);
+                // Download the file from cloud
+                inputStream = mCloudProvider.downloadFile();
 
-            // Upload file to cloud
-            mCloudProvider.uploadFile(tempFbFile);
+                // Sync the database
+                syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
+
+                System.out.println("----- forced wait");
+                Thread.sleep(10000);
+                System.out.println("----- forced wait end");
+
+                // populateUUID
+                mManager.populateUUID(mTables);
+
+                // Generate the new sync timestamp
+                mManager.populateSendTime(currentTimestamp, mTables);
+
+                // Write the database file
+                tempFbFile = writeDateBaseFile();
+
+                // Upload file to cloud
+                uploadStatus = mCloudProvider.uploadFile(tempFbFile);
+
+                if (uploadStatus == CloudProvider.UPLOAD_OK) {
+                    break;
+                }
+
+                // Delete the temp file
+                if (tempFbFile != null && tempFbFile.exists()) {
+                    Log.d(TAG, "delete db temp file:" + tempFbFile.getName());
+                    tempFbFile = null;
+                }
+                Log.i(TAG, "conflict retry into sync try in 100 ms");
+                Thread.sleep(100);
+            }
 
             // Save Time
             saveLastSyncTimestamp(currentTimestamp);
@@ -86,6 +114,7 @@ public class DBSync {
         } catch (SyncException e) {
             return new SyncResult(e.getStatus());
         } catch (Exception e) {
+            Log.e(TAG, "error", e);
             return new SyncResult(new SyncStatus(SyncStatus.ERROR, e.getMessage()));
         } finally {
             if (tempFbFile != null && tempFbFile.exists()) {
@@ -180,16 +209,15 @@ public class DBSync {
      * @param inputStream
      * @param lastSyncTimestamp
      */
-    private DatabaseCounter syncDatabase(final InputStream inputStream, long lastSyncTimestamp) {
+    private void syncDatabase(final InputStream inputStream, DatabaseCounter counter, long lastSyncTimestamp, long currentTimestamp) {
         JSonDatabaseReader reader = null;
-        DatabaseCounter counter = null;
 
         try {
             // Create the new database reader
             reader = new JSonDatabaseReader(inputStream);
 
             // Start sync procedure with a the last timestamp
-            counter = mManager.syncDatabase(reader, mTables, lastSyncTimestamp);
+            mManager.syncDatabase(reader, mTables, counter, lastSyncTimestamp, currentTimestamp);
         } catch (IOException e) {
             // if the sync procedure generate an IOException i convert it
             throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, e);
@@ -198,7 +226,6 @@ public class DBSync {
                 reader.close();
             }
         }
-        return counter;
     }
 
     private void saveLastSyncTimestamp(long timestampToSave) {
@@ -245,7 +272,7 @@ public class DBSync {
         private String mDataBaseName;
         private List<TableToSync> mTables = new ArrayList<>();
         private Context mCtx;
-        @ConflictPolicy private int mConflictPolicy = SERVER;
+        @ConflictPolicy private int mConflictPolicy = CLIENT;
         private int mThresholdSeconds = 300;
 
         public Builder(final Context ctx) {

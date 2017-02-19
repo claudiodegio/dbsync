@@ -41,16 +41,13 @@ public class SqlLiteManager {
     }
 
 
-    public DatabaseCounter syncDatabase(final DatabaseReader reader, final List<TableToSync> tables, long lastSyncTimestamp) throws IOException {
-        DatabaseCounter counter;
+    public void syncDatabase(final DatabaseReader reader, final List<TableToSync> tables, DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp) throws IOException {
         Database dbCurrentDatabase;
         Table dbCurrentTable;
         Record dbCurrentRecord;
         TableToSync currentTableToSync = null;
         Map<String, ColumnMetadata> columns = null;
         int elementType;
-
-        counter = new DatabaseCounter();
 
         Log.i(TAG, "start syncDatabase");
 
@@ -86,7 +83,7 @@ public class SqlLiteManager {
                     case JSonDatabaseReader.RECORD:
                         dbCurrentRecord = reader.readRecord(columns);
                         // Found record sync single record
-                        syncRecord(currentTableToSync, dbCurrentRecord, counter, lastSyncTimestamp);
+                        syncRecord(currentTableToSync, dbCurrentRecord, counter, lastSyncTimestamp, currentSyncTimestamp);
                         break;
                 }
             }
@@ -99,10 +96,9 @@ public class SqlLiteManager {
         }
 
         Log.i(TAG, "end syncDatabase tables: " + counter.getTableSyncedCount() + " recUpdated:" + counter.getRecordUpdated() + " recInserted:" + counter.getRecordInserted());
-        return counter;
     }
 
-    private void syncRecord(final TableToSync tableToSync, final Record record, final DatabaseCounter counter, long lastSyncTimestamp){
+    private void syncRecord(final TableToSync tableToSync, final Record record, final DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp){
 
         ColumnValue valueSendTime;
         ColumnValue valueCloudId;
@@ -156,7 +152,9 @@ public class SqlLiteManager {
                 // Update
 
                 // Check for possible conflict
-                if (dbRecordMatch.getSendTime() == null && sendTime > lastSyncTimestamp) {
+                if ((dbRecordMatch.getSendTime() == null
+                        || dbRecordMatch.getSendTime() == currentSyncTimestamp)
+                        && sendTime > lastSyncTimestamp) {
                     // Conflict of data
                     if (mConflictPolicy == DBSync.SERVER) {
                         // perform update only if server version wins

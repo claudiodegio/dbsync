@@ -28,13 +28,15 @@ public class JSonDatabaseReader implements DatabaseReader {
     private Database mDatabase;
     private Table mCurrentTable;
     private Record mCurrentRecord;
+    private InputStream mInputStream;
 
     public JSonDatabaseReader(InputStream inputStream) throws IOException {
         JsonFactory jsonFactory;
 
         jsonFactory = new JsonFactory(); // or, for data binding, org.codehaus.jackson.mapper.MappingJsonFactory
-        mJp = jsonFactory.createParser(inputStream); // or URL, Stream, Reader, String, byte[]
-        mState = new DatabaseState();
+        this.mJp = jsonFactory.createParser(inputStream); // or URL, Stream, Reader, String, byte[]
+        this.mState = new DatabaseState();
+        this.mInputStream = inputStream;
     }
 
     @Override

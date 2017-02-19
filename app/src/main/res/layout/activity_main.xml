@@ -35,5 +35,6 @@
             android:text="TO DB manager"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
     </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>

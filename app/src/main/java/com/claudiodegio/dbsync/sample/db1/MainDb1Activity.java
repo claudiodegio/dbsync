@@ -121,12 +121,12 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
 
         mTvStatus.setText("In Progress");
 
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder()
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setGoogleApiClient(mGoogleApiClient)
                 .build();
 
-        dbSync = new DBSync.Builder(this)
+        dbSync = new DBSync.Builder(this.getBaseContext())
                 .setCloudProvider(gDriveProvider)
                 .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
                 .setDataBaseName(app.db1OpenHelper.getDatabaseName())
@@ -199,6 +199,8 @@ public class MainDb1Activity extends BaseActivity implements TableViewerFragment
                 SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
                 editor.putString(DRIVE_ID_FILE, mDriveId.encodeToString());
                 editor.commit();
+
+                System.out.println(mDriveId.encodeToString());
 
                 mTvStatus2.setText("GDrive Client - Connected - File Selected");
                 mBtSync.setEnabled(true);

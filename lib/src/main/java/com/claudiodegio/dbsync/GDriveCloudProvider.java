@@ -1,12 +1,14 @@
 package com.claudiodegio.dbsync;
 
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Result;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveApi.DriveContentsResult;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
@@ -15,30 +17,35 @@ import com.google.android.gms.drive.DriveResource.MetadataResult;
 import com.google.android.gms.drive.ExecutionOptions;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.events.CompletionEvent;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.SyncFailedException;
 
 public class GDriveCloudProvider implements CloudProvider {
 
     private final static String TAG = "GDriveCloudProvider";
 
-    private GoogleApiClient mGoogleApiClient;
-    private DriveId mDriveId;
+    final private GoogleApiClient mGoogleApiClient;
+    final private DriveId mDriveId;
+    final private Context mCtx;
+    private DriveContents mDriveContent;
+    private GDriveCompletionRecevier mGDriveCompletionRecevier;
 
-    private GDriveCloudProvider(final GoogleApiClient googleApiClient, DriveId driveId){
+    private GDriveCloudProvider(final Context ctx, final GoogleApiClient googleApiClient, final DriveId driveId){
         this.mGoogleApiClient = googleApiClient;
         this.mDriveId = driveId;
+        this.mCtx = ctx;
+        this.mGDriveCompletionRecevier = new GDriveCompletionRecevier();
+        this.mCtx.registerReceiver(mGDriveCompletionRecevier, new IntentFilter(GDriveEventService.CUSTOM_INTENT));
     }
 
     @Override
-    public void uploadFile(File tempFile) {
+    public int uploadFile(File tempFile) {
         DriveFile driveFile;
         MetadataResult metadataResult;
         Metadata metadata;
@@ -46,6 +53,7 @@ public class GDriveCloudProvider implements CloudProvider {
         DriveContentsResult driveContentsResult;
         OutputStream outputStream;
         ExecutionOptions executionOptions;
+        int complentionStatus;
 
         Log.i(TAG, "start upload of DB file temp:" + tempFile.getName());
 
@@ -65,7 +73,7 @@ public class GDriveCloudProvider implements CloudProvider {
             }
 
             // Writing file
-            driveContentsResult = driveFile.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
+            driveContentsResult = mDriveContent.reopenForWrite(mGoogleApiClient).await();
             checkStatus(driveContentsResult);
 
             driveContents = driveContentsResult.getDriveContents();
@@ -80,13 +88,25 @@ public class GDriveCloudProvider implements CloudProvider {
             // TODO gestire il conflitto
             executionOptions = new ExecutionOptions.Builder()
                     .setNotifyOnCompletion(true)
-                    .setConflictStrategy(ExecutionOptions.CONFLICT_STRATEGY_OVERWRITE_REMOTE)
+                    .setConflictStrategy(ExecutionOptions.CONFLICT_STRATEGY_KEEP_REMOTE)
                     .build();
 
-            driveContents.commit(mGoogleApiClient, null, executionOptions).await();
+            driveContents.commit(mGoogleApiClient, null, executionOptions);
 
-            Log.i(TAG, "file committed");
+            Log.i(TAG, "file committed - wait for complention");
 
+            // Wait for complention
+            complentionStatus = mGDriveCompletionRecevier.waitCompletion();
+
+            Log.i(TAG, "received complention status:" + complentionStatus);
+
+            if (complentionStatus == CompletionEvent.STATUS_CONFLICT) {
+                return CloudProvider.UPLOAD_CONFLICT;
+            } else if (complentionStatus == CompletionEvent.STATUS_FAILURE) {
+                throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive (FAILURE of commit)");
+            }
+
+            return CloudProvider.UPLOAD_OK;
         } catch (IOException e) {
             if (driveContents != null) {
                 driveContents.discard(mGoogleApiClient);
@@ -100,13 +120,13 @@ public class GDriveCloudProvider implements CloudProvider {
         DriveFile driveFile;
         MetadataResult metadataResult;
         Metadata metadata;
-        DriveContents driveContents = null;
         DriveContentsResult driveContentsResult;
         InputStream inputStream = null;
 
         Log.i(TAG, "start download of DB file");
 
         try {
+            mDriveContent = null;
             driveFile = mDriveId.asDriveFile();
 
             // Get metadata
@@ -118,16 +138,18 @@ public class GDriveCloudProvider implements CloudProvider {
             checkStatus(driveContentsResult);
 
             metadata = metadataResult.getMetadata();
+            Log.i(TAG, "pinned file:" + metadata.isPinned());
+
             Log.i(TAG, "downloaded DB file:" + metadata.getOriginalFilename() + " modified on: " + metadata.getModifiedDate() + " size:" + metadata.getFileSize() + " bytes");
 
-            driveContents = driveContentsResult.getDriveContents();
+            mDriveContent = driveContentsResult.getDriveContents();
 
-            inputStream  = driveContents.getInputStream();
+            inputStream  = mDriveContent.getInputStream();
 
             return inputStream;
         } catch (Exception e) {
-            if (driveContents != null) {
-                driveContents.discard(mGoogleApiClient);
+            if (mDriveContent != null) {
+                mDriveContent.discard(mGoogleApiClient);
             }
             throw new SyncException(SyncStatus.ERROR_DOWNLOAD_CLOUD, "Error reading file from GDrive message:" + e.getMessage());
         }
@@ -156,12 +178,46 @@ public class GDriveCloudProvider implements CloudProvider {
         checkStatus(metadataResult);
     }
 
+
+    private class GDriveCompletionRecevier extends BroadcastReceiver {
+
+        private int result;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final DriveId driveId = intent.getParcelableExtra(GDriveEventService.BUNDLE_DRIVEID);
+
+            Log.i(TAG, "onReceive complention event for driveID:" + driveId.encodeToString());
+
+            if (driveId.equals(mDriveId)) {
+                result =  intent.getIntExtra(GDriveEventService.BUNDLE_SUCCESS, -1);
+                synchronized (this) {
+                    notify();
+                }
+            }
+        }
+
+        private int waitCompletion(){
+
+            try {
+                synchronized (this) {
+                    wait();
+                }
+            } catch (InterruptedException ignored) { }
+
+            return result;
+        }
+    }
+
     public static class Builder {
 
         private GoogleApiClient mGoogleApiClient;
-
+        private Context mCtx;
 
         private DriveId mDriveId;
+
+        public Builder(final Context ctx) {
+            this.mCtx = ctx;
+        }
 
         public Builder setGoogleApiClient(final GoogleApiClient googleApiClient) {
             this.mGoogleApiClient = googleApiClient;
@@ -180,7 +236,8 @@ public class GDriveCloudProvider implements CloudProvider {
 
         public GDriveCloudProvider build(){
             // TODO check
-            return new GDriveCloudProvider(mGoogleApiClient, mDriveId);
+            return new GDriveCloudProvider(mCtx, mGoogleApiClient, mDriveId);
         }
     }
+
 }
