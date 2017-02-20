@@ -11,7 +11,6 @@
     </FrameLayout>
 
 
-
     <TextView
         android:id="@+id/tvStatus"
         android:layout_width="match_parent"
@@ -23,6 +22,16 @@
         android:layout_height="wrap_content"/>
 
     <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvCurrentTime" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvFileName" />
+
+    <TextView
         android:id="@+id/tvLastTimeStamp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
@@ -32,24 +41,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <Button
-            android:text="INSERT \nNAME"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btInsertName" />
 
         <Button
             android:text="DB Manager"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/btToDbManager" />
+            android:id="@+id/btToDbManager"
+            android:layout_gravity="center_vertical"/>
 
         <Button
             android:id="@+id/btResetLastSyncTimestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Reset TS"
-            android:enabled="false"/>
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
 
 
     </LinearLayout>
@@ -65,21 +71,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sync"
-            android:enabled="false"/>
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
 
         <Button
             android:id="@+id/btSelectFileForSync"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select File For Sync"
-            android:enabled="false"/>
+            android:text="Select Sync \nFile"
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
 
-
+        <Button
+            android:id="@+id/btCreateFileForSync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Sync \nFile"
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
 
     </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/tvCurrentTime" />
 </LinearLayout>

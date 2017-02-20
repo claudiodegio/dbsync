@@ -21,8 +21,6 @@ import com.claudiodegio.dbsync.SqlLiteUtility.SqlWithBinding;
  * Classe di gestione delle operazioni su database
  */
 
-// TODO mettere populate UUID
-// TODO mettere logica generazione record
 
 public class SqlLiteManager {
 
@@ -31,8 +29,6 @@ public class SqlLiteManager {
     final private SQLiteDatabase mDb;
     @DBSync.ConflictPolicy final private int mConflictPolicy;
     final private int mThresholdSeconds;
-
-
 
     public SqlLiteManager(SQLiteDatabase db, int conflictPolicy, int thresholdSeconds) {
         this.mDb = db;

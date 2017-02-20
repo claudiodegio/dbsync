@@ -11,6 +11,13 @@
         android:layout_height="wrap_content">
 
         <Button
+            android:text="+"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/btAdd"
+            android:layout_weight="0.5" />
+
+        <Button
             android:id="@+id/btPrev"
             android:text="PREV"
             android:layout_width="0dip"

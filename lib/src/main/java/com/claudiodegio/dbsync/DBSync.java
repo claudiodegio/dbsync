@@ -77,10 +77,6 @@ public class DBSync {
                 // Sync the database
                 syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
 
-                System.out.println("----- forced wait");
-                Thread.sleep(10000);
-                System.out.println("----- forced wait end");
-
                 // populateUUID
                 mManager.populateUUID(mTables);
 

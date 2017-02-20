@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync.sample.tablemanager;
+package com.claudiodegio.dbsync.sample.core;
 
 import android.app.Fragment;
 import android.database.Cursor;
@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.claudiodegio.dbsync.sample.MainActivity;
 import com.claudiodegio.dbsync.sample.R;
 
 import org.slf4j.Logger;
@@ -29,7 +28,6 @@ import de.codecrafters.tableview.TableHeaderAdapter;
 import de.codecrafters.tableview.TableView;
 import de.codecrafters.tableview.listeners.TableDataClickListener;
 import de.codecrafters.tableview.model.TableColumnDpWidthModel;
-import de.codecrafters.tableview.model.TableColumnModel;
 import de.codecrafters.tableview.toolkit.SimpleTableDataAdapter;
 import de.codecrafters.tableview.toolkit.SimpleTableHeaderAdapter;
 
@@ -59,7 +57,7 @@ public class TableViewerFragment extends Fragment implements TableDataClickListe
     private int mCurrentPage = 0;
     private int mNumPages = 0;
 
-    private OnItemClicked mOnItemClicked;
+    private OnEditListener mOnItemClicked;
 
     public static TableViewerFragment newInstance(String dbName, String tableName) {
         
@@ -221,6 +219,12 @@ public class TableViewerFragment extends Fragment implements TableDataClickListe
         showPage(mCurrentPage);
     }
 
+    @OnClick(R.id.btAdd)
+    public void buttonAdd(){
+        if (mOnItemClicked != null) {
+            mOnItemClicked.onAdd();
+        }
+    }
 
     public void reload(){
         countPages();
@@ -235,16 +239,22 @@ public class TableViewerFragment extends Fragment implements TableDataClickListe
         long id = Long.parseLong(data[0]);
 
         if (mOnItemClicked != null) {
-            mOnItemClicked.onItemClicked(id, data);
+            mOnItemClicked.onItemEdit(id, data);
         }
     }
 
-    public interface OnItemClicked {
-        void onItemClicked(long id, String [] data );
+    @OnClick(R.id.btAdd)
+    public void onBtAdd(){
+
+    }
+
+    public interface OnEditListener {
+        void onItemEdit(long id, String [] data );
+        void onAdd();
     }
 
 
-    public void setOnItemClicked(OnItemClicked mOnItemClicked) {
+    public void setOnItemClicked(OnEditListener mOnItemClicked) {
         this.mOnItemClicked = mOnItemClicked;
     }
 }
