@@ -138,13 +138,17 @@ public class GDriveCloudProvider implements CloudProvider {
             checkStatus(driveContentsResult);
 
             metadata = metadataResult.getMetadata();
-            Log.i(TAG, "pinned file:" + metadata.isPinned());
 
             Log.i(TAG, "downloaded DB file:" + metadata.getOriginalFilename() + " modified on: " + metadata.getModifiedDate() + " size:" + metadata.getFileSize() + " bytes");
 
             mDriveContent = driveContentsResult.getDriveContents();
 
             inputStream  = mDriveContent.getInputStream();
+
+            if (metadata.getFileSize() < 3) {
+                inputStream.close();
+                return null;
+            }
 
             return inputStream;
         } catch (Exception e) {
