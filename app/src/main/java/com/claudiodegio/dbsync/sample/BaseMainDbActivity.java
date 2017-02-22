@@ -96,11 +96,11 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
         Log.i(TAG,"onConnected");
         mTvStatus2.setText("GDrive Client - Connected");
         mBtSelectFileForSync.setEnabled(true);
+        mBtCreateFileForSync.setEnabled(true);
 
         if (mDriveId != null) {
             mTvStatus2.setText("GDrive Client - Connected - File Selected");
             mBtSync.setEnabled(true);
-            mBtCreateFileForSync.setEnabled(true);
             mBtResetLastSyncTimestamp.setEnabled(true);
             readMetadata();
         }

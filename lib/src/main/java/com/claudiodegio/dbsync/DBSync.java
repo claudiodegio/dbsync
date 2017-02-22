@@ -75,8 +75,9 @@ public class DBSync {
                 inputStream = mCloudProvider.downloadFile();
 
                 // Sync the database
-                syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
-
+                if (inputStream != null) {
+                    syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
+                }
                 // populateUUID
                 mManager.populateUUID(mTables);
 
@@ -105,7 +106,9 @@ public class DBSync {
             // Save Time
             saveLastSyncTimestamp(currentTimestamp);
 
-             // ALL OK
+            Log.i(TAG, "sync completed");
+
+            // ALL OK
             return new SyncResult(new SyncStatus(SyncStatus.OK), counter);
         } catch (SyncException e) {
             return new SyncResult(e.getStatus());

@@ -79,7 +79,9 @@ public class SqlLiteManager {
                     case JSonDatabaseReader.RECORD:
                         dbCurrentRecord = reader.readRecord(columns);
                         // Found record sync single record
-                        syncRecord(currentTableToSync, dbCurrentRecord, counter, lastSyncTimestamp, currentSyncTimestamp);
+                        if (!dbCurrentRecord.isEmpty()) {
+                            syncRecord(currentTableToSync, dbCurrentRecord, counter, lastSyncTimestamp, currentSyncTimestamp);
+                        }
                         break;
                 }
             }

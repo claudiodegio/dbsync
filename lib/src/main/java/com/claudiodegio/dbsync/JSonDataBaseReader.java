@@ -267,6 +267,7 @@ public class JSonDatabaseReader implements DatabaseReader {
             mCurrentRecord = new Record();
             while (mJp.nextToken() != JsonToken.END_OBJECT) {
 
+
                 if (mJp.getCurrentToken() == JsonToken.FIELD_NAME) {
                     fieldName = mJp.getCurrentName();
 
@@ -283,11 +284,18 @@ public class JSonDatabaseReader implements DatabaseReader {
 
                     mCurrentRecord.add(value);
                 }
+                if (mJp.getCurrentToken() == JsonToken.END_ARRAY) {
+                    // End Array also no records
+                    break;
+                }
 
             }
 
-            // Go to next token
-            mJp.nextToken();
+            // Go to next token, only if not the end of records
+            if (mJp.getCurrentToken() != JsonToken.END_ARRAY) {
+                mJp.nextToken();
+            }
+
             if (mJp.getCurrentToken() == JsonToken.START_OBJECT) {
                 // The current token is start of object -> new record no change state required
                 return;
