@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public interface DatabaseWriter {
 
-    void writeDatabase(String name, int numOfTable) throws IOException;
+    void writeDatabase(String name, int numOfTable, int schemaVersion) throws IOException;
 
     void writeTable(String name, int numOfRecord) throws IOException;
 

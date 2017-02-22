@@ -9,11 +9,14 @@ public class Database {
     final private String mName;
     final private int mFormatVersion;
     final private int mTableCount;
+    final private int mSchemaVersion;
 
-    public Database(String name, int formatVersion, int tableCount) {
+
+    public Database(String name, int formatVersion, int tableCount, int schemaVersion) {
         this.mName = name;
         this.mFormatVersion = formatVersion;
         this.mTableCount = tableCount;
+        this.mSchemaVersion = schemaVersion;
     }
     public int getTableCount() {
         return mTableCount;
@@ -33,6 +36,7 @@ public class Database {
         return "Database{" +
                 "mName='" + mName + '\'' +
                 ", mFormatVersion=" + mFormatVersion +
+                ", mSchemaVersion=" + mSchemaVersion +
                 ", mTableCount=" + mTableCount +
                 '}';
     }
