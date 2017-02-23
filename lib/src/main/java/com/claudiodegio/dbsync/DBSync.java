@@ -30,8 +30,8 @@ public class DBSync {
     final private List<TableToSync> mTables;
     final private Context mCtx;
     final private String mDataBaseName;
-    @ConflictPolicy final private int mConflictPolicy;
-    private int mThresholdSeconds = 0;
+    final private int mSchemaVersion;
+
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({SERVER, CLIENT})
@@ -39,15 +39,14 @@ public class DBSync {
     static final int SERVER = 1;
     static final int CLIENT = 2;
 
-    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, @ConflictPolicy int conflictPolicy, int thresholdSeconds){
+    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
         this.mCtx = ctx;
         this.mCloudProvider = cloudProvider;
         this.mDB = db;
         this.mTables = tables;
         this.mDataBaseName = dataBaseName;
-        this.mManager = new SqlLiteManager(mDB, conflictPolicy, thresholdSeconds);
-        this.mConflictPolicy = conflictPolicy;
-        this.mThresholdSeconds = thresholdSeconds;
+        this.mManager = new SqlLiteManager(mDB, conflictPolicy, thresholdSeconds, schemaVersion);
+        this.mSchemaVersion = schemaVersion;
     }
 
     // TODO fare la versione sincrona e async
@@ -143,7 +142,7 @@ public class DBSync {
             writer = new JSonDatabaseWriter(outStream);
 
             // Write database start
-            writer.writeDatabase(mDataBaseName, mTables.size());
+            writer.writeDatabase(mDataBaseName, mTables.size(), mSchemaVersion);
 
             // Write tables
             for (TableToSync table : mTables) {
@@ -273,6 +272,7 @@ public class DBSync {
         private Context mCtx;
         @ConflictPolicy private int mConflictPolicy = CLIENT;
         private int mThresholdSeconds = 300;
+        private int mSchemaVersion = 1;
 
         public Builder(final Context ctx) {
             this.mCtx = ctx;
@@ -309,8 +309,13 @@ public class DBSync {
             return this;
         }
 
+        public Builder setSchemaVersion(int schemaVersion) {
+            this.mSchemaVersion = schemaVersion;
+            return this;
+        }
+
         public DBSync build(){
-            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mConflictPolicy, mThresholdSeconds);
+            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mConflictPolicy, mThresholdSeconds, mSchemaVersion);
         }
     }
 }

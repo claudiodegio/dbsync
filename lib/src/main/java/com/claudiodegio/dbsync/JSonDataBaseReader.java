@@ -134,6 +134,7 @@ public class JSonDatabaseReader implements DatabaseReader {
             String databaseName = null;
             int tableCount = -1;
             int formatVersion = -1;
+            int schemaVersion = -1;
             boolean foundTable = false;
 
             // The first token is {
@@ -151,6 +152,8 @@ public class JSonDatabaseReader implements DatabaseReader {
                     tableCount = readNextTokenAsInt();
                 } else if (fieldName.equals("formatVersion")){
                    formatVersion =  readNextTokenAsInt();
+                } else if (fieldName.equals("schemaVersion")){
+                    schemaVersion =  readNextTokenAsInt();
                 }  else if (fieldName.equals("tables")){
                    foundTable = true;
                     break;
@@ -171,12 +174,16 @@ public class JSonDatabaseReader implements DatabaseReader {
                 throw new IOException("Unable to read format version");
             }
 
+            if (schemaVersion == -1) {
+                throw new IOException("Unable to read schema version");
+            }
+
             // Il sezione delle tabelle deve essere l'ultimo della sezione
             if (!foundTable || !mJp.getCurrentName().equals("tables")) {
                 throw new IOException("Unable to read tables section");
             }
 
-            mDatabase = new Database(databaseName, formatVersion, tableCount);
+            mDatabase = new Database(databaseName, formatVersion, tableCount, schemaVersion);
 
             // The first token is [
             if(mJp.nextToken() != JsonToken.START_ARRAY){

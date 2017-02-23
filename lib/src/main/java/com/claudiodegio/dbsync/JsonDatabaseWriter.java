@@ -25,10 +25,11 @@ public class JSonDatabaseWriter implements DatabaseWriter {
     }
 
     @Override
-    public void writeDatabase(String name, int numOfTable) throws IOException {
+    public void writeDatabase(String name, int numOfTable, int schemaVersion) throws IOException {
         mGen.writeStartObject();
         mGen.writeStringField("name", name);
         mGen.writeNumberField("formatVersion", 1);
+        mGen.writeNumberField("schemaVersion", schemaVersion);
         mGen.writeNumberField("tableCount", numOfTable);
         mGen.writeFieldName("tables");
         mGen.writeStartArray();

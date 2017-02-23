@@ -29,11 +29,14 @@ public class SqlLiteManager {
     final private SQLiteDatabase mDb;
     @DBSync.ConflictPolicy final private int mConflictPolicy;
     final private int mThresholdSeconds;
+    final private int mSchemaVersion;
 
-    public SqlLiteManager(SQLiteDatabase db, int conflictPolicy, int thresholdSeconds) {
+
+    public SqlLiteManager(SQLiteDatabase db, int conflictPolicy, int thresholdSeconds, int schemaVersion) {
         this.mDb = db;
         this.mConflictPolicy = conflictPolicy;
         this.mThresholdSeconds = thresholdSeconds;
+        this.mSchemaVersion = schemaVersion;
     }
 
 
@@ -56,6 +59,12 @@ public class SqlLiteManager {
                 switch (elementType) {
                     case JSonDatabaseReader.START_DB:
                         dbCurrentDatabase = reader.readDatabase();
+
+                        // Check schema version
+                        if (dbCurrentDatabase.getSchemaVersion() > mSchemaVersion) {
+                            throw new SyncException(SyncStatus.ERROR_NEW_SCHEMA_VERSION, "Find new schema version, need to update (found:" + dbCurrentDatabase.getSchemaVersion() + ", expected:" + mSchemaVersion + ")");
+                        }
+
                         break;
                     case JSonDatabaseReader.START_TABLE:
                         // Read the table and column metadata
