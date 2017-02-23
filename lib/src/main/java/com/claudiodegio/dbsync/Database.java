@@ -30,6 +30,9 @@ public class Database {
         return mName;
     }
 
+    public int getSchemaVersion() {
+        return mSchemaVersion;
+    }
 
     @Override
     public String toString() {

@@ -227,6 +227,7 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
 
     @OnClick(R.id.btSync)
     public void btSync(){
+        mTvStatus.setText("In Progress...");
         new SyncTask().execute();
     }
 

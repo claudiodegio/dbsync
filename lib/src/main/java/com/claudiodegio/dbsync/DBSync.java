@@ -45,7 +45,7 @@ public class DBSync {
         this.mDB = db;
         this.mTables = tables;
         this.mDataBaseName = dataBaseName;
-        this.mManager = new SqlLiteManager(mDB, conflictPolicy, thresholdSeconds);
+        this.mManager = new SqlLiteManager(mDB, conflictPolicy, thresholdSeconds, schemaVersion);
         this.mSchemaVersion = schemaVersion;
     }
 

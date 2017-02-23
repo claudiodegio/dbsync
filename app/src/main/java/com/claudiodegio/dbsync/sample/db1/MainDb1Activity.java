@@ -45,7 +45,7 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
                 .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
                 .setDataBaseName(app.db1OpenHelper.getDatabaseName())
                 .addTable(new TableToSync.Builder("name").build())
-                .setSchemaVersion(1)
+                .setSchemaVersion(2)
                 .build();
 
         mFragment = TableViewerFragment.newInstance("db1.db", "name");
