@@ -12,6 +12,7 @@ import android.view.MenuItem;
 
 
 import com.claudiodegio.dbsync.sample.db1.MainDb1Activity;
+import com.claudiodegio.dbsync.sample.db2.MainDb2Activity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,12 +56,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @OnClick(R.id.btTest)
-    public void goToTest(){
-
-        startActivity(new Intent(this, TestReadWriteActivity.class));
-    }
-
     @OnClick(R.id.btGDrive)
     public void goToGDRive(){
 
@@ -76,5 +71,10 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.btDb1)
     public void goToDB1(){
         startActivity(new Intent(this, MainDb1Activity.class));
+    }
+
+    @OnClick(R.id.btDb2)
+    public void goToDB2(){
+        startActivity(new Intent(this, MainDb2Activity.class));
     }
 }

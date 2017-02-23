@@ -28,11 +28,6 @@
             android:name=".db1.MainDb1Activity"
             android:label="DB1"
             android:theme="@style/AppTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <activity
@@ -42,10 +37,35 @@
         </activity>
 
         <activity
-            android:name=".TestReadWriteActivity"
-            android:label="JSON"
+            android:name=".db2.MainDb2Activity"
+            android:label="DB2"
             android:theme="@style/AppTheme">
         </activity>
+
+        <activity
+            android:name=".db2.NamesActivity"
+            android:label="DB2 -  NAME"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db2.InsertNameActivity"
+            android:label="DB2 - I. NAME"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db2.CategoriesActivity"
+            android:label="DB2 -  CATEGORY"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db2.InsertCategoryActivity"
+            android:label="DB2 - I. CATEGORY"
+            android:theme="@style/AppTheme">
+        </activity>
+
 
         <activity
             android:name=".TestGDriveActivity"
