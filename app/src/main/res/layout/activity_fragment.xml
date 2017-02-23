@@ -11,10 +11,4 @@
     </FrameLayout>
 
 
-
-    <include layout="@layout/view_status"/>
-
-    <include layout="@layout/view_actions"/>
-
-
 </LinearLayout>

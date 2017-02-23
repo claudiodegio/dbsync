@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <Button
+            android:text="DB Manager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btToDbManager"
+            android:layout_gravity="center_vertical"/>
+
+        <Button
+            android:id="@+id/btResetLastSyncTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset TS"
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btSync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sync"
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
+
+        <Button
+            android:id="@+id/btSelectFileForSync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Sync \nFile"
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
+
+        <Button
+            android:id="@+id/btCreateFileForSync"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Create Sync \nFile"
+            android:enabled="false"
+            android:layout_gravity="center_vertical"/>
+
+    </LinearLayout>
+
+</LinearLayout>

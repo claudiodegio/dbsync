@@ -18,11 +18,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
+
         <Button
-            android:id="@+id/btTest"
+            android:id="@+id/btDb2"
+            android:text="DB 2 (2 TABLE)"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Json"/>
+            android:layout_height="wrap_content" />
 
         <Button
             android:text="TO GDRIVE"
