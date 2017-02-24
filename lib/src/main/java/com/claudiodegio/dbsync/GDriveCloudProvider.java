@@ -159,6 +159,11 @@ public class GDriveCloudProvider implements CloudProvider {
         }
     }
 
+    @Override
+    public void close() {
+        this.mCtx.unregisterReceiver(mGDriveCompletionRecevier);
+    }
+
     private void checkStatus(Result result) throws SyncException {
         if (!result.getStatus().isSuccess()) {
             throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, result.getStatus().getStatusMessage());
