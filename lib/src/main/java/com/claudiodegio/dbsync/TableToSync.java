@@ -11,8 +11,9 @@ public class TableToSync {
     private String mIdColumn;
     private String mSendTimeColumn;
     private List<String> mMatchRules;
+    private String mFilter;
 
-    private TableToSync(final String name){
+    private TableToSync(final String name, final String filter){
         this.mName = name;
         this.mIgnoreColumns = new ArrayList<>(1);
         this.mIgnoreColumns.add("_id");
@@ -21,6 +22,7 @@ public class TableToSync {
         this.mSendTimeColumn = "SEND_TIME";
         this.mMatchRules = new ArrayList<>(1);
         this.mMatchRules.add("CLOUD_ID = :CLOUD_ID");
+        this.mFilter = " " + filter;
     }
 
     public String getName() {
@@ -46,16 +48,24 @@ public class TableToSync {
     public List<String> getMatchRules(){
         return mMatchRules;
     }
+
+    public String getFilter() {return mFilter; }
     public static class Builder {
 
-        final String mName;
+        final private String mName;
+        private String mFilter = "";
 
         public Builder(final String name){
             this.mName = name;
         }
 
+        public Builder setFilter(String mFilter) {
+            this.mFilter = mFilter;
+            return this;
+        }
+
         public TableToSync build(){
-            return new TableToSync(mName);
+            return new TableToSync(mName, mFilter);
         }
     }
 

@@ -122,6 +122,10 @@ public class DBSync {
     }
 
 
+    public void dispose(){
+        this.mCloudProvider.close();
+    }
+
     /**
      * Write the database on json file
      * @return
@@ -174,7 +178,7 @@ public class DBSync {
         columnsMetadata = SqlLiteUtility.readTableMetadata(mDB, table.getName());
 
         try {
-            cur = mDB.query(table.getName(), null, null, null, null, null, null);
+            cur = mDB.query(table.getName(), null, table.getFilter(), null, null, null, null);
 
             Log.i(TAG, "Write table:" + table.getName() + " records:" + cur.getCount());
 

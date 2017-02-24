@@ -5,6 +5,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.Nullable;
+import android.support.v4.text.TextUtilsCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.apache.commons.collections4.IterableUtils;
@@ -299,7 +301,11 @@ public class SqlLiteManager {
         ContentValues contentValuesUpdate;
         Log.i(TAG, "start populateUUID for table:" + table.getName() + " idColumn:" + table.getIdColumn() + " CloudIdColumn:" + table.getCloudIdColumn());
 
-        selection = table.getCloudIdColumn() + " IS NULL OR " + table.getCloudIdColumn() + " = \"\"";
+        selection = "( " + table.getCloudIdColumn() + " IS NULL OR " + table.getCloudIdColumn() + " = \"\")";
+
+        if (!TextUtils.isEmpty(table.getFilter())) {
+            selection += " AND " + table.getFilter();
+        }
 
         try {
             cur = mDb.query(table.getName(), new String[]{table.getIdColumn()}, selection, null, null, null, null);
@@ -344,6 +350,10 @@ public class SqlLiteManager {
         Log.i(TAG, "start populateSendTime for table:" + table.getName() + " sendTable:" + table.getSendTimeColumn());
 
         where = table.getSendTimeColumn() + " IS NULL";
+
+        if (!TextUtils.isEmpty(table.getFilter())) {
+            where += " AND "+ table.getFilter();
+        }
 
         contentValues = new ContentValues();
         contentValues.put(table.getSendTimeColumn(), sendTimestamp);

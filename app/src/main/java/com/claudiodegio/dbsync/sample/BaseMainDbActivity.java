@@ -131,6 +131,7 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        dbSync.dispose();
         mGoogleApiClient.disconnect();
     }
 
@@ -277,4 +278,5 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
             }
         }
     }
+
 }

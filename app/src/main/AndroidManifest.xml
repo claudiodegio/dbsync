@@ -66,6 +66,18 @@
             android:theme="@style/AppTheme">
         </activity>
 
+        <activity
+            android:name=".db3.MainDb3Activity"
+            android:label="DB3"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db3.InsertNameActivity"
+            android:label="DB3 - I. NAME"
+            android:theme="@style/AppTheme">
+        </activity>
+
 
         <activity
             android:name=".TestGDriveActivity"

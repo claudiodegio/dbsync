@@ -21,4 +21,6 @@ public interface CloudProvider {
     @UploadStatus int uploadFile(File tempFile);
 
     InputStream downloadFile();
+
+    void close();
 }

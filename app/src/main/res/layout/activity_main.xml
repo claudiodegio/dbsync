@@ -25,6 +25,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
+
+        <Button
+            android:id="@+id/btDb3"
+            android:text="DB 3 (1 TABLE with filter = 0)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
         <Button
             android:text="TO GDRIVE"
             android:layout_width="wrap_content"

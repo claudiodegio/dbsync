@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:hint="Name"
+        android:ems="10"
+        android:id="@+id/etName" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Filter id"
+        android:ems="10"
+        android:id="@+id/etFilter" />
+
+    <CheckBox
+        android:text="Set Null"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/cbNull" />
+
+    <Button
+        android:id="@+id/btInsert"
+        android:text="INSERT"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btUpdate"
+        android:text="UPDATE"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>
