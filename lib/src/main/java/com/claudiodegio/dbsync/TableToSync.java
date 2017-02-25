@@ -12,6 +12,7 @@ public class TableToSync {
     private String mSendTimeColumn;
     private List<String> mMatchRules;
     final private String mFilter;
+
     final private List<JoinTable> mJoinTable;
 
     private TableToSync(final String name, final String filter, final  List<JoinTable> joinTable){
@@ -52,6 +53,15 @@ public class TableToSync {
     }
 
     public String getFilter() {return mFilter; }
+
+    public List<JoinTable> getJoinTable() {
+        return mJoinTable;
+    }
+
+    public boolean hasJoinTable(){
+        return !mJoinTable.isEmpty();
+    }
+
     public static class Builder {
 
         final private String mName;

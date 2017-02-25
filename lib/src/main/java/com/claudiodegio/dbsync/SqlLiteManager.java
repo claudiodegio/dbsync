@@ -12,6 +12,7 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -374,24 +375,90 @@ public class SqlLiteManager {
         }
     }
 
-    /**
-     * Write single table on database file
-     * @param table the table
-     * @param writer
-     * @throws IOException
-     */
     private void serializeTable(final TableToSync table, final DatabaseWriter writer) throws IOException{
         List<ColumnMetadata> columnsMetadata;
         Cursor cur = null;
         ColumnValue value = null;
         Record record;
+        String sql;
+        String sqlJoin;
+        String sqlSelection;
+        String alias;
+        TableToSync refTable;
+        List<String> listJoinColumn;
+
+        int aliasCount = 1;
 
         columnsMetadata = SqlLiteUtility.readTableMetadata(mDB, table.getName());
 
+        sqlSelection = "a.*";
+        sqlJoin = "";
+        listJoinColumn = new ArrayList<>(table.getJoinTable().size());
+
+        for (JoinTable joinTable : table.getJoinTable()) {
+            refTable = joinTable.getReferenceTable();
+
+            alias = "a" + aliasCount;
+
+            // JOIN
+            sqlJoin += "LEFT JOIN " + refTable.getName()+ " " + alias;
+            sqlJoin += " ON a." + joinTable.getJoinColumn() + " = " + alias + "." + refTable.getIdColumn();
+
+            // Selection
+            sqlSelection += ", " + alias + "." + refTable.getCloudIdColumn() + " as CLOUD_" + joinTable.getJoinColumn();
+
+            listJoinColumn.add(joinTable.getJoinColumn());
+
+            aliasCount++;
+        }
+
         try {
+            Log.i(TAG, "Write table:" + table.getName() + " with " + table.getJoinTable().size() + " tables");
+
+            sql = "SELECT " + sqlSelection + " FROM " + table.getName() + " a " + sqlJoin;
+
+            if (!TextUtils.isEmpty(table.getFilter())) {
+                sql += "WHERE " + table.getFilter();
+            }
+
+            Log.d(TAG, "Write sql:" + sql);
+
+            cur = mDB.rawQuery(sql, null);
+
+            writer.writeTable(table.getName(), cur.getCount());
+
+            while (cur.moveToNext()) {
+                record = new Record();
+
+                for (ColumnMetadata colMeta : columnsMetadata) {
+                    if (!table.isColumnToIgnore(colMeta.getName())
+                            && !listJoinColumn.contains(colMeta.getName())) {
+                        value = SqlLiteUtility.getCursorColumnValue(cur, colMeta);
+                        record.add(value);
+                    }
+                }
+
+                for (String joinColumn : listJoinColumn) {
+                    joinColumn = "CLOUD_" + joinColumn.toUpperCase();
+                    value = SqlLiteUtility.getCursorColumnValue(cur,  joinColumn, ColumnMetadata.TYPE_STRING);
+                    record.add(value);
+                }
+
+                writer.writeRecord(record);
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (cur != null) {
+                cur.close();
+            }
+        }
+
+
+        /*try {
             cur = mDB.query(table.getName(), null, table.getFilter(), null, null, null, null);
 
-            Log.i(TAG, "Write table:" + table.getName() + " records:" + cur.getCount());
+            Log.i(TAG, "Write simple table:" + table.getName() + " records:" + cur.getCount());
 
             writer.writeTable(table.getName(), cur.getCount());
 
@@ -413,7 +480,7 @@ public class SqlLiteManager {
             if (cur != null) {
                 cur.close();
             }
-        }
+        }*/
     }
 
 

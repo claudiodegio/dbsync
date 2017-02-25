@@ -86,6 +86,10 @@ public class SqlLiteUtility {
         return cursor.getLong(index);
     }
 
+    public static ColumnValue getCursorColumnValue(final Cursor cursor, final String columnName, @ColumnMetadata.Type int type) {
+        return SqlLiteUtility.getCursorColumnValue(cursor,  new ColumnMetadata(columnName, type));
+    }
+
     public static ColumnValue getCursorColumnValue(final Cursor cursor, final ColumnMetadata metadata) {
         String columnName;
         int index;

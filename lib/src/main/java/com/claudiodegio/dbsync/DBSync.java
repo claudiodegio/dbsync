@@ -11,6 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -72,7 +74,7 @@ public class DBSync {
 
                 // Sync the database
                 if (inputStream != null) {
-                    syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
+                   // syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
                 }
                 // populateUUID
                 mManager.populateUUID();
@@ -97,6 +99,7 @@ public class DBSync {
                 }
                 Log.i(TAG, "conflict retry into sync try in 100 ms");
                 Thread.sleep(100);
+                break;
             }
 
             // Save Time
@@ -129,7 +132,7 @@ public class DBSync {
      * @throws SyncException
      */
     private File writeDateBaseFile() throws SyncException {
-        File tempDbFile;
+        File tempDbFile = null;
         FileOutputStream outStream;
         DatabaseWriter writer;
 
@@ -146,11 +149,12 @@ public class DBSync {
             mManager.writeDatabase(writer);
 
             // Close database
-             writer.close();
+            writer.close();
 
             Log.i(TAG, "Created DB file with size: " + tempDbFile.length());
             return tempDbFile;
         } catch (Exception e) {
+            FileUtils.deleteQuietly(tempDbFile);
             throw new SyncException(SyncStatus.ERROR_WRITING_TMP_DB, e.getMessage());
         }
     }

@@ -40,10 +40,10 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .build();
 
 
-        TableToSync tableCategory = new TableToSync.Builder("category")
+        TableToSync tableCategory = new TableToSync.Builder("CATEGORY")
                 .build();
 
-        TableToSync tableArticle = new TableToSync.Builder("article")
+        TableToSync tableArticle = new TableToSync.Builder("ARTICLE")
                 .addJoinTable(tableCategory, "CATEGORY_ID")
                 .build();
 
