@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.Nullable;
-import android.support.v4.text.TextUtilsCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -28,21 +27,25 @@ public class SqlLiteManager {
 
     private final static String TAG = "SqlLiteManager";
 
-    final private SQLiteDatabase mDb;
+    final private SQLiteDatabase mDB;
+    final private String mDataBaseName;
     @DBSync.ConflictPolicy final private int mConflictPolicy;
     final private int mThresholdSeconds;
     final private int mSchemaVersion;
+    final private List<TableToSync> mTableToSync;
 
 
-    public SqlLiteManager(SQLiteDatabase db, int conflictPolicy, int thresholdSeconds, int schemaVersion) {
-        this.mDb = db;
+    public SqlLiteManager(SQLiteDatabase db,  String dataBaseName, List<TableToSync> tableToSync, int conflictPolicy, int thresholdSeconds, int schemaVersion) {
+        this.mDB = db;
+        this.mDataBaseName = dataBaseName;
         this.mConflictPolicy = conflictPolicy;
         this.mThresholdSeconds = thresholdSeconds;
         this.mSchemaVersion = schemaVersion;
+        this.mTableToSync = tableToSync;
     }
 
 
-    public void syncDatabase(final DatabaseReader reader, final List<TableToSync> tables, DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp) throws IOException {
+    public void syncDatabase(final DatabaseReader reader, DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp) throws IOException {
         Database dbCurrentDatabase;
         Table dbCurrentTable;
         Record dbCurrentRecord;
@@ -55,7 +58,7 @@ public class SqlLiteManager {
         // TODO check database name
         try {
             // Open the TX
-            mDb.beginTransaction();
+            mDB.beginTransaction();
 
             while ((elementType = reader.nextElement()) != JSonDatabaseReader.END) {
                 switch (elementType) {
@@ -71,11 +74,11 @@ public class SqlLiteManager {
                     case JSonDatabaseReader.START_TABLE:
                         // Read the table and column metadata
                         dbCurrentTable = reader.readTable();
-                        columns = SqlLiteUtility.readTableMetadataAsMap(mDb, dbCurrentTable.getName());
+                        columns = SqlLiteUtility.readTableMetadataAsMap(mDB, dbCurrentTable.getName());
 
                         // Find the table to sync definition and rules
                         final String tableName = dbCurrentTable.getName();
-                        currentTableToSync = IterableUtils.find(tables, new Predicate<TableToSync>() {
+                        currentTableToSync = IterableUtils.find(mTableToSync, new Predicate<TableToSync>() {
                             @Override
                             public boolean evaluate(TableToSync object) {
                                 return object.getName().equals(tableName);
@@ -97,11 +100,11 @@ public class SqlLiteManager {
                 }
             }
             // Commit the TX
-            mDb.setTransactionSuccessful();
+            mDB.setTransactionSuccessful();
         } catch (Exception e) {
             throw e;
         } finally {
-            mDb.endTransaction();
+            mDB.endTransaction();
         }
 
         Log.i(TAG, "end syncDatabase tables: " + counter.getTableSyncedCount() + " recUpdated:" + counter.getRecordUpdated() + " recInserted:" + counter.getRecordInserted());
@@ -190,7 +193,6 @@ public class SqlLiteManager {
         }
     }
 
-
     @Nullable
     private DBRecordMatch findDatabaseIdByMatchRule(final String rule, final TableToSync tableToSync, final Record record){
         String sql;
@@ -220,7 +222,7 @@ public class SqlLiteManager {
         try {
 
             // Find the id
-            cur = mDb.rawQuery(sqlWithBinding.getParsed(), args);
+            cur = mDB.rawQuery(sqlWithBinding.getParsed(), args);
 
             if (cur.getCount() > 1) {
                 cloudId = record.findField(tableToSync.getCloudIdColumn()).getValueString();
@@ -264,9 +266,8 @@ public class SqlLiteManager {
 
         whereClause = tableToSync.getIdColumn() + " = ?";
 
-        mDb.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
+        mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
     }
-
 
     private void insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
         ContentValues contentValues;
@@ -283,11 +284,11 @@ public class SqlLiteManager {
         }
 
 
-        mDb.insert(tableToSync.getName(), null, contentValues);
+        mDB.insert(tableToSync.getName(), null, contentValues);
     }
 
-    public void populateUUID(final List<TableToSync> tables){
-        for (TableToSync table : tables) {
+    public void populateUUID(){
+        for (TableToSync table : mTableToSync) {
             populateUUID(table);
         }
     }
@@ -308,7 +309,7 @@ public class SqlLiteManager {
         }
 
         try {
-            cur = mDb.query(table.getName(), new String[]{table.getIdColumn()}, selection, null, null, null, null);
+            cur = mDB.query(table.getName(), new String[]{table.getIdColumn()}, selection, null, null, null, null);
 
             rowCount = 0;
             contentValuesUpdate = new ContentValues();
@@ -322,7 +323,7 @@ public class SqlLiteManager {
                 // Update of cloud id
                 contentValuesUpdate.put(table.getCloudIdColumn(), uuid);
 
-                mDb.update(table.getName(), contentValuesUpdate, table.getIdColumn() + " = ?", new String[]{Integer.toString(id)});
+                mDB.update(table.getName(), contentValuesUpdate, table.getIdColumn() + " = ?", new String[]{Integer.toString(id)});
                 rowCount++;
             }
 
@@ -336,8 +337,8 @@ public class SqlLiteManager {
         }
     }
 
-    public void populateSendTime(long sendTimestamp, final List<TableToSync> tables) {
-        for (TableToSync table : tables) {
+    public void populateSendTime(long sendTimestamp) {
+        for (TableToSync table : mTableToSync) {
             populateSendTime(sendTimestamp, table);
         }
     }
@@ -358,10 +359,63 @@ public class SqlLiteManager {
         contentValues = new ContentValues();
         contentValues.put(table.getSendTimeColumn(), sendTimestamp);
 
-        rowUpdated = mDb.update(table.getName(), contentValues,  where, null);
+        rowUpdated = mDB.update(table.getName(), contentValues,  where, null);
 
         Log.i(TAG, "end populateUUID  updated record:" + rowUpdated);
     }
+
+    public void writeDatabase(final DatabaseWriter writer) throws IOException {
+        // Write database start
+        writer.writeDatabase(mDataBaseName, mTableToSync.size(), mSchemaVersion);
+
+        // Write tables
+        for (TableToSync table : mTableToSync) {
+            serializeTable(table, writer);
+        }
+    }
+
+    /**
+     * Write single table on database file
+     * @param table the table
+     * @param writer
+     * @throws IOException
+     */
+    private void serializeTable(final TableToSync table, final DatabaseWriter writer) throws IOException{
+        List<ColumnMetadata> columnsMetadata;
+        Cursor cur = null;
+        ColumnValue value = null;
+        Record record;
+
+        columnsMetadata = SqlLiteUtility.readTableMetadata(mDB, table.getName());
+
+        try {
+            cur = mDB.query(table.getName(), null, table.getFilter(), null, null, null, null);
+
+            Log.i(TAG, "Write table:" + table.getName() + " records:" + cur.getCount());
+
+            writer.writeTable(table.getName(), cur.getCount());
+
+            while (cur.moveToNext()) {
+                record = new Record();
+
+                for (ColumnMetadata colMeta : columnsMetadata) {
+                    if (!table.isColumnToIgnore(colMeta.getName())) {
+                        value = SqlLiteUtility.getCursorColumnValue(cur, colMeta);
+                        record.add(value);
+                    }
+                }
+
+                writer.writeRecord(record);
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (cur != null) {
+                cur.close();
+            }
+        }
+    }
+
 
     class DBRecordMatch {
         private Long mId;

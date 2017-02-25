@@ -33,20 +33,28 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .build();
 
 
-        /*
+
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setGoogleApiClient(mGoogleApiClient)
+                .build();
+
+
+        TableToSync tableCategory = new TableToSync.Builder("category")
+                .build();
+
+        TableToSync tableArticle = new TableToSync.Builder("article")
+                .addJoinTable(tableCategory, "CATEGORY_ID")
                 .build();
 
         dbSync = new DBSync.Builder(this.getBaseContext())
                 .setCloudProvider(gDriveProvider)
                 .setSQLiteDatabase(app.db4OpenHelper.getWritableDatabase())
                 .setDataBaseName(app.db4OpenHelper.getDatabaseName())
-                .addTable(new TableToSync.Builder("article").build())
-                .addTable(new TableToSync.Builder("category").build())
+                .addTable(tableCategory)
+                .addTable(tableArticle)
                 .setSchemaVersion(1)
-                .build();*/
+                .build();
 
 
    }
