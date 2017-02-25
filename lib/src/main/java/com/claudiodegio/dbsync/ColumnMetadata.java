@@ -27,7 +27,7 @@ public class ColumnMetadata {
     }
 
     public ColumnMetadata(String name, int type) {
-        this(name, type, true, false);
+        this(name, type, false, false);
     }
 
     public boolean isPk() {

@@ -74,7 +74,7 @@ public class DBSync {
 
                 // Sync the database
                 if (inputStream != null) {
-                   // syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
+                    syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
                 }
                 // populateUUID
                 mManager.populateUUID();

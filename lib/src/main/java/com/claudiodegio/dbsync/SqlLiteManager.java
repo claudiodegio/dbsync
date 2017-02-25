@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
 
@@ -27,6 +28,9 @@ import com.claudiodegio.dbsync.SqlLiteUtility.SqlWithBinding;
 public class SqlLiteManager {
 
     private final static String TAG = "SqlLiteManager";
+
+
+    private final static String JOIN_COLUMN_PREFIX = "FK_CLOUD_";
 
     final private SQLiteDatabase mDB;
     final private String mDataBaseName;
@@ -52,6 +56,8 @@ public class SqlLiteManager {
         Record dbCurrentRecord;
         TableToSync currentTableToSync = null;
         Map<String, ColumnMetadata> columns = null;
+        String joinColumnName;
+        ColumnMetadata joinColumnMetadata;
         int elementType;
 
         Log.i(TAG, "start syncDatabase");
@@ -75,7 +81,6 @@ public class SqlLiteManager {
                     case JSonDatabaseReader.START_TABLE:
                         // Read the table and column metadata
                         dbCurrentTable = reader.readTable();
-                        columns = SqlLiteUtility.readTableMetadataAsMap(mDB, dbCurrentTable.getName());
 
                         // Find the table to sync definition and rules
                         final String tableName = dbCurrentTable.getName();
@@ -88,6 +93,15 @@ public class SqlLiteManager {
 
                         if (currentTableToSync == null) {
                             throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find table " + tableName + " into table definition");
+                        }
+
+                        columns = SqlLiteUtility.readTableMetadataAsMap(mDB, dbCurrentTable.getName());
+
+                        // Add the records columns for join tables
+                        for (JoinTable joinTable : currentTableToSync.getJoinTable()) {
+                            joinColumnName = JOIN_COLUMN_PREFIX + joinTable.getJoinColumn();
+                            joinColumnMetadata = new ColumnMetadata(joinColumnName.toUpperCase(), ColumnMetadata.TYPE_STRING);
+                            columns.put(joinColumnName, joinColumnMetadata);
                         }
 
                         break;
@@ -250,20 +264,37 @@ public class SqlLiteManager {
         }
     }
 
+    @Nullable
+    private Long findDatabaseIdByCloudId(final String cloudId, final TableToSync table) {
+
+        String whereCause;
+        Cursor cur = null;
+
+        try {
+
+            whereCause = table.getCloudIdColumn() + " = ?";
+
+            cur = mDB.query(table.getName(), new String[] { table.getIdColumn()}, whereCause, new String[] { cloudId }, null, null, null, null);
+
+            if (cur.getCount() == 0) {
+                return null;
+            }
+
+            return cur.getLong(0);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (cur != null) {
+                cur.close();
+            }
+        }
+    }
+
     private void updateRecordIntoDatabase(final DBRecordMatch dbRecordMatch, final TableToSync tableToSync, final Record record){
         ContentValues contentValues;
         String whereClause;
 
-        contentValues = new ContentValues();
-
-        for (ColumnValue value : record) {
-            // Ignore id columns
-            String fieldName = value.getMetadata().getName();
-
-            if (!fieldName.equals(tableToSync.getIdColumn())) {
-                SqlLiteUtility.columnValueToContentValues(value, contentValues);
-            }
-        }
+        contentValues = buildContentValues(tableToSync, record);
 
         whereClause = tableToSync.getIdColumn() + " = ?";
 
@@ -273,21 +304,64 @@ public class SqlLiteManager {
     private void insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
         ContentValues contentValues;
 
-        contentValues = new ContentValues();
-
-        for (ColumnValue value : record) {
-            // Ignore id columns
-            String fieldName = value.getMetadata().getName();
-
-            if (!fieldName.equals(tableToSync.getIdColumn())) {
-                SqlLiteUtility.columnValueToContentValues(value, contentValues);
-            }
-        }
-
+        contentValues = buildContentValues(tableToSync, record);
 
         mDB.insert(tableToSync.getName(), null, contentValues);
     }
 
+    private ContentValues buildContentValues(final TableToSync tableToSync, final Record record){
+        ContentValues contentValues;
+        JoinTable joinTable;
+        Long joinId;
+
+        contentValues = new ContentValues();
+
+        // Work on join columns
+        for (ColumnValue value : record) {
+            final String fieldName = value.getMetadata().getName();
+
+            // Ignore id columns, and join columns
+            if (!fieldName.equals(tableToSync.getIdColumn())
+                    && ! fieldName.startsWith(JOIN_COLUMN_PREFIX)) {
+                SqlLiteUtility.columnValueToContentValues(value, contentValues);
+            }
+
+            // Found join columns
+            if (fieldName.startsWith(JOIN_COLUMN_PREFIX)) {
+
+                joinTable = IterableUtils.find(tableToSync.getJoinTable(), new Predicate<JoinTable>() {
+                    @Override
+                    public boolean evaluate(JoinTable object) {
+                        return object.getJoinColumn().equals(JOIN_COLUMN_PREFIX + fieldName);
+                    }
+                });
+
+                if (joinTable == null) {
+                    throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find join table for field " + fieldName + " into definition");
+                }
+
+
+                if (!value.isNull()) {
+                    // The value is non null try to find the local id
+                    joinId = findDatabaseIdByCloudId(value.getValueString(), joinTable.getReferenceTable());
+
+                    if (joinId != null) {
+                        Log.d(TAG, "Map join column: " + joinTable.getJoinColumn() + " (table: "+ joinTable.getReferenceTable().getName() + ") with id:" + joinId);
+                        contentValues.put(joinTable.getJoinColumn(), joinId);
+                    } else {
+                        Log.d(TAG, "Map join column: " + joinTable.getJoinColumn() + " (table: "+ joinTable.getReferenceTable().getName() + ") with null");
+                        contentValues.putNull(joinTable.getJoinColumn());
+                    }
+                } else {
+                    // The value is null
+                    Log.d(TAG, "Map join column: " + joinTable.getJoinColumn() + " (table: "+ joinTable.getReferenceTable().getName() + ") with null");
+                    contentValues.putNull(joinTable.getJoinColumn());
+                }
+            }
+        }
+
+        return contentValues;
+    }
     public void populateUUID(){
         for (TableToSync table : mTableToSync) {
             populateUUID(table);
@@ -405,7 +479,7 @@ public class SqlLiteManager {
             sqlJoin += " ON a." + joinTable.getJoinColumn() + " = " + alias + "." + refTable.getIdColumn();
 
             // Selection
-            sqlSelection += ", " + alias + "." + refTable.getCloudIdColumn() + " as CLOUD_" + joinTable.getJoinColumn();
+            sqlSelection += ", " + alias + "." + refTable.getCloudIdColumn() + " as " + JOIN_COLUMN_PREFIX + joinTable.getJoinColumn().toString();
 
             listJoinColumn.add(joinTable.getJoinColumn());
 
@@ -439,8 +513,8 @@ public class SqlLiteManager {
                 }
 
                 for (String joinColumn : listJoinColumn) {
-                    joinColumn = "CLOUD_" + joinColumn.toUpperCase();
-                    value = SqlLiteUtility.getCursorColumnValue(cur,  joinColumn, ColumnMetadata.TYPE_STRING);
+                    joinColumn = JOIN_COLUMN_PREFIX + joinColumn;
+                    value = SqlLiteUtility.getCursorColumnValue(cur,  joinColumn.toUpperCase(), ColumnMetadata.TYPE_STRING);
                     record.add(value);
                 }
 
@@ -453,34 +527,6 @@ public class SqlLiteManager {
                 cur.close();
             }
         }
-
-
-        /*try {
-            cur = mDB.query(table.getName(), null, table.getFilter(), null, null, null, null);
-
-            Log.i(TAG, "Write simple table:" + table.getName() + " records:" + cur.getCount());
-
-            writer.writeTable(table.getName(), cur.getCount());
-
-            while (cur.moveToNext()) {
-                record = new Record();
-
-                for (ColumnMetadata colMeta : columnsMetadata) {
-                    if (!table.isColumnToIgnore(colMeta.getName())) {
-                        value = SqlLiteUtility.getCursorColumnValue(cur, colMeta);
-                        record.add(value);
-                    }
-                }
-
-                writer.writeRecord(record);
-            }
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (cur != null) {
-                cur.close();
-            }
-        }*/
     }
 
 
