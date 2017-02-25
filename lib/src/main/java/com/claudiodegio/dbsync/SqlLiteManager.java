@@ -280,6 +280,8 @@ public class SqlLiteManager {
                 return null;
             }
 
+            cur.moveToFirst();
+
             return cur.getLong(0);
         } catch (Exception e) {
             throw e;
@@ -332,7 +334,7 @@ public class SqlLiteManager {
                 joinTable = IterableUtils.find(tableToSync.getJoinTable(), new Predicate<JoinTable>() {
                     @Override
                     public boolean evaluate(JoinTable object) {
-                        return object.getJoinColumn().equals(JOIN_COLUMN_PREFIX + fieldName);
+                        return fieldName.toUpperCase().endsWith(object.getJoinColumn());
                     }
                 });
 
