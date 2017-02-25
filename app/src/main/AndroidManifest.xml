@@ -79,6 +79,38 @@
         </activity>
 
 
+
+        <activity
+            android:name=".db4.MainDb4Activity"
+            android:label="DB4"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db4.ArticlesActivity"
+            android:label="DB4 -  ARTICLE"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db4.InsertArticleActivity"
+            android:label="DB4 - I. ARTICLE"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db4.CategoriesActivity"
+            android:label="DB4 -  CATEGORY"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db4.InsertCategoryActivity"
+            android:label="DB4 - I. CATEGORY"
+            android:theme="@style/AppTheme">
+        </activity>
+
+
         <activity
             android:name=".TestGDriveActivity"
             android:label="GDRIVE"

@@ -33,6 +33,12 @@
             android:layout_height="wrap_content" />
 
         <Button
+            android:id="@+id/btDb4"
+            android:text="DB 4 (2 TABLE WITH JOIN)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
             android:text="TO GDRIVE"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
