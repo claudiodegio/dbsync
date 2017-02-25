@@ -11,8 +11,6 @@ import com.claudiodegio.dbsync.GDriveCloudProvider;
 import com.claudiodegio.dbsync.TableToSync;
 import com.claudiodegio.dbsync.sample.BaseMainDbActivity;
 import com.claudiodegio.dbsync.sample.R;
-import com.claudiodegio.dbsync.sample.db2.CategoriesActivity;
-import com.claudiodegio.dbsync.sample.db2.NamesActivity;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 
@@ -21,7 +19,6 @@ import butterknife.OnClick;
 public class MainDb4Activity extends BaseMainDbActivity  {
 
     private final static String TAG = "MainDb4Activity";
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,7 +32,9 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .addOnConnectionFailedListener(this)
                 .build();
 
-      /*  CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+
+        /*
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setGoogleApiClient(mGoogleApiClient)
                 .build();
@@ -47,8 +46,9 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .addTable(new TableToSync.Builder("article").build())
                 .addTable(new TableToSync.Builder("category").build())
                 .setSchemaVersion(1)
-                .build();
-                */
+                .build();*/
+
+
    }
 
     @Override

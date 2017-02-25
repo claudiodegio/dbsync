@@ -10,6 +10,7 @@ import com.claudiodegio.dbsync.sample.BaseActivity;
 import com.claudiodegio.dbsync.sample.R;
 import com.claudiodegio.dbsync.sample.core.TableViewerFragment;
 
+
 public class CategoriesActivity extends BaseActivity implements TableViewerFragment.OnEditListener {
 
     TableViewerFragment mFragment;
@@ -20,6 +21,7 @@ public class CategoriesActivity extends BaseActivity implements TableViewerFragm
         setContentView(R.layout.activity_fragment);
 
         mFragment = TableViewerFragment.newInstance("db4.db", "CATEGORY");
+
         mFragment.setOnItemClicked(this);
 
         FragmentManager fm = getFragmentManager();
@@ -31,6 +33,7 @@ public class CategoriesActivity extends BaseActivity implements TableViewerFragm
     @Override
     public void onItemEdit(long id, String[] data) {
         Intent intent = new Intent(this, InsertCategoryActivity.class);
+
         intent.putExtra("ID", id);
         startActivity(intent);
     }

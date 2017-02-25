@@ -47,6 +47,7 @@ public class InsertArticleActivity extends BaseActivity {
         setContentView(R.layout.activity_insert_article);
         app = (DbSyncApplication) getApplication();
         mDB = app.db4OpenHelper.getWritableDatabase();
+
         ButterKnife.bind(this);
 
         mId = getIntent().getLongExtra("ID", -1);

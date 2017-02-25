@@ -41,6 +41,7 @@ public class InsertCategoryActivity extends BaseActivity {
         setContentView(R.layout.activity_insert_category);
         app = (DbSyncApplication) getApplication();
         mDB = app.db4OpenHelper.getWritableDatabase();
+
         ButterKnife.bind(this);
 
         mId = getIntent().getLongExtra("ID", -1);
@@ -73,6 +74,7 @@ public class InsertCategoryActivity extends BaseActivity {
         contentValues.putNull("SEND_TIME");
 
         return contentValues;
+
     }
 
     @Override
@@ -85,7 +87,7 @@ public class InsertCategoryActivity extends BaseActivity {
         Cursor cur;
 
         if (mId != -1) {
-            cur = mDB.query("name", null, "_id = ?", new String[] {Long.toString(mId)}, null, null, null);
+            cur = mDB.query("category", null, "_id = ?", new String[] {Long.toString(mId)}, null, null, null);
             cur.moveToFirst();
             mETName.setText(cur.getString(1));
             cur.close();

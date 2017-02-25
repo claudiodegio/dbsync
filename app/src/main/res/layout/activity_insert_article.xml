@@ -23,7 +23,6 @@
         android:ems="10"
         android:id="@+id/etCategoryId" />
 
-
     <CheckBox
         android:text="Set Null (category)"
         android:layout_width="match_parent"
