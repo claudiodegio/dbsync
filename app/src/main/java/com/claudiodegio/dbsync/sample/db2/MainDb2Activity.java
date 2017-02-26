@@ -1,22 +1,16 @@
 package com.claudiodegio.dbsync.sample.db2;
 
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
-import com.claudiodegio.dbsync.CloudProvider;
+import com.claudiodegio.dbsync.provider.CloudProvider;
 import com.claudiodegio.dbsync.DBSync;
-import com.claudiodegio.dbsync.GDriveCloudProvider;
+import com.claudiodegio.dbsync.provider.GDriveCloudProvider;
 import com.claudiodegio.dbsync.TableToSync;
 import com.claudiodegio.dbsync.sample.BaseMainDbActivity;
 import com.claudiodegio.dbsync.sample.R;
-import com.claudiodegio.dbsync.sample.core.TableViewerFragment;
-import com.claudiodegio.dbsync.sample.db1.InsertNameActivity;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.Drive;
 
 import butterknife.OnClick;
 

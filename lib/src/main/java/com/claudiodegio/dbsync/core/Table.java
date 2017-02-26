@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 
 public class Table {

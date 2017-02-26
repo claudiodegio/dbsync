@@ -1,5 +1,7 @@
 package com.claudiodegio.dbsync;
 
+import com.claudiodegio.dbsync.core.DatabaseCounter;
+
 public class SyncResult {
 
     private SyncStatus mSyncStatus;

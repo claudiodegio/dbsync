@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.provider;
 
 
 import android.content.BroadcastReceiver;
@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
+import com.claudiodegio.dbsync.core.SyncException;
+import com.claudiodegio.dbsync.SyncStatus;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.drive.DriveApi.DriveContentsResult;
@@ -101,12 +103,12 @@ public class GDriveCloudProvider implements CloudProvider {
             Log.i(TAG, "received complention status:" + complentionStatus);
 
             if (complentionStatus == CompletionEvent.STATUS_CONFLICT) {
-                return CloudProvider.UPLOAD_CONFLICT;
+                return UPLOAD_CONFLICT;
             } else if (complentionStatus == CompletionEvent.STATUS_FAILURE) {
                 throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive (FAILURE of commit)");
             }
 
-            return CloudProvider.UPLOAD_OK;
+            return UPLOAD_OK;
         } catch (IOException e) {
             if (driveContents != null) {
                 driveContents.discard(mGoogleApiClient);

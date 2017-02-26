@@ -1,8 +1,7 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
-import org.apache.commons.collections4.functors.EqualPredicate;
 
 import java.util.ArrayList;
 

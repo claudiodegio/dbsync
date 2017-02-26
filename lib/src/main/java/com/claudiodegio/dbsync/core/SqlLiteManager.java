@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 
 import android.content.ContentValues;
@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
 
@@ -18,7 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.claudiodegio.dbsync.SqlLiteUtility.SqlWithBinding;
+import com.claudiodegio.dbsync.DBSync;
+import com.claudiodegio.dbsync.SyncStatus;
+import com.claudiodegio.dbsync.TableToSync;
+import com.claudiodegio.dbsync.json.JSonDatabaseReader;
 
 /**
  * Classe di gestione delle operazioni su database
@@ -34,7 +36,8 @@ public class SqlLiteManager {
 
     final private SQLiteDatabase mDB;
     final private String mDataBaseName;
-    @DBSync.ConflictPolicy final private int mConflictPolicy;
+    @DBSync.ConflictPolicy
+    final private int mConflictPolicy;
     final private int mThresholdSeconds;
     final private int mSchemaVersion;
     final private List<TableToSync> mTableToSync;
@@ -213,7 +216,7 @@ public class SqlLiteManager {
         String sql;
         String cloudId;
         Cursor cur = null;
-        SqlWithBinding sqlWithBinding;
+        SqlLiteUtility.SqlWithBinding sqlWithBinding;
         String [] args;
         Long id, sendTime;
 

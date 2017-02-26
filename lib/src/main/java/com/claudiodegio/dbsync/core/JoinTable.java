@@ -1,5 +1,7 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
+
+import com.claudiodegio.dbsync.TableToSync;
 
 public class JoinTable {
     final private TableToSync mReferenceTable;

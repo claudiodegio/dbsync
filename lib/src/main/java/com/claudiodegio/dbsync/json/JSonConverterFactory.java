@@ -1,4 +1,6 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.json;
+
+import com.claudiodegio.dbsync.core.ColumnMetadata;
 
 public class JSonConverterFactory {
 

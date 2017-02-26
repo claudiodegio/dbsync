@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.provider;
 
 import android.content.Intent;
 import android.util.Log;

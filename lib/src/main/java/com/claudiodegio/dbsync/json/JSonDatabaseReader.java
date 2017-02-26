@@ -1,7 +1,13 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.json;
 
 import android.text.TextUtils;
 
+import com.claudiodegio.dbsync.core.ColumnMetadata;
+import com.claudiodegio.dbsync.core.ColumnValue;
+import com.claudiodegio.dbsync.core.Database;
+import com.claudiodegio.dbsync.core.DatabaseReader;
+import com.claudiodegio.dbsync.core.Record;
+import com.claudiodegio.dbsync.core.Table;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;

@@ -1,5 +1,7 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.json;
 
+import com.claudiodegio.dbsync.core.ColumnMetadata;
+import com.claudiodegio.dbsync.core.ColumnValue;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 

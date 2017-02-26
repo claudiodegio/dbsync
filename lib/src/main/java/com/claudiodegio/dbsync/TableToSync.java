@@ -1,5 +1,7 @@
 package com.claudiodegio.dbsync;
 
+import com.claudiodegio.dbsync.core.JoinTable;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,4 +1,6 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
+
+import com.claudiodegio.dbsync.core.Record;
 
 import java.io.IOException;
 

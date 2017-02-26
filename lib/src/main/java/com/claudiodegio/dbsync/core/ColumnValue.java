@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 // Potrei farlo con il decorator
 public class ColumnValue {

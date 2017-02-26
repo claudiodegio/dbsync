@@ -1,15 +1,19 @@
 package com.claudiodegio.dbsync;
 
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.IntDef;
 import android.util.Log;
+
+import com.claudiodegio.dbsync.provider.CloudProvider;
+import com.claudiodegio.dbsync.core.DatabaseCounter;
+import com.claudiodegio.dbsync.core.DatabaseWriter;
+import com.claudiodegio.dbsync.core.SyncException;
+import com.claudiodegio.dbsync.json.JSonDatabaseReader;
+import com.claudiodegio.dbsync.json.JSonDatabaseWriter;
+import com.claudiodegio.dbsync.core.SqlLiteManager;
 
 import org.apache.commons.io.FileUtils;
 
@@ -36,8 +40,8 @@ public class DBSync {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({SERVER, CLIENT})
     public @interface ConflictPolicy {}
-    static final int SERVER = 1;
-    static final int CLIENT = 2;
+    static final public int SERVER = 1;
+    static final public int CLIENT = 2;
 
     private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
         this.mCtx = ctx;

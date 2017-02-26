@@ -1,8 +1,4 @@
-package com.claudiodegio.dbsync;
-
-/**
- * Created by claud on 01/02/2017.
- */
+package com.claudiodegio.dbsync.core;
 
 public class Database {
 
