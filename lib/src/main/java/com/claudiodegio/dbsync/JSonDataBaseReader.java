@@ -280,6 +280,7 @@ public class JSonDatabaseReader implements DatabaseReader {
 
                     // Get column metadata
                     if (!colMetadataMap.containsKey(fieldName)){
+
                         throw new IOException("Unable to find columns metadata for columns " + fieldName);
                     }
 

@@ -26,6 +26,10 @@ public class ColumnMetadata {
         this.pk = pk;
     }
 
+    public ColumnMetadata(String name, int type) {
+        this(name, type, false, false);
+    }
+
     public boolean isPk() {
         return pk;
     }

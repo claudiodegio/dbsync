@@ -1,8 +1,6 @@
-package com.claudiodegio.dbsync.sample.db2;
+package com.claudiodegio.dbsync.sample.db4;
 
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,21 +11,18 @@ import com.claudiodegio.dbsync.GDriveCloudProvider;
 import com.claudiodegio.dbsync.TableToSync;
 import com.claudiodegio.dbsync.sample.BaseMainDbActivity;
 import com.claudiodegio.dbsync.sample.R;
-import com.claudiodegio.dbsync.sample.core.TableViewerFragment;
-import com.claudiodegio.dbsync.sample.db1.InsertNameActivity;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 
 import butterknife.OnClick;
 
-public class MainDb2Activity extends BaseMainDbActivity  {
+public class MainDb4Activity extends BaseMainDbActivity  {
 
-    private final static String TAG = "MainDb2Activity";
-
+    private final static String TAG = "MainDb4Activity";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        setContentView(R.layout.activity_main_db2);
+        setContentView(R.layout.activity_main_db4);
         super.onCreate(savedInstanceState);
    }
 
@@ -37,25 +32,37 @@ public class MainDb2Activity extends BaseMainDbActivity  {
 
     @Override
     public void onPostSelectFile() {
+
+
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setGoogleApiClient(mGoogleApiClient)
                 .build();
 
+
+        TableToSync tableCategory = new TableToSync.Builder("CATEGORY")
+                .build();
+
+        TableToSync tableArticle = new TableToSync.Builder("ARTICLE")
+                .addJoinTable(tableCategory, "CATEGORY_ID")
+                .build();
+
         dbSync = new DBSync.Builder(this.getBaseContext())
                 .setCloudProvider(gDriveProvider)
-                .setSQLiteDatabase(app.db2OpenHelper.getWritableDatabase())
-                .setDataBaseName(app.db2OpenHelper.getDatabaseName())
-                .addTable(new TableToSync.Builder("name").build())
-                .addTable(new TableToSync.Builder("category").build())
+                .setSQLiteDatabase(app.db4OpenHelper.getWritableDatabase())
+                .setDataBaseName(app.db4OpenHelper.getDatabaseName())
+                .addTable(tableCategory)
+                .addTable(tableArticle)
                 .setSchemaVersion(1)
                 .build();
+
+
     }
 
 
-    @OnClick(R.id.btName)
+    @OnClick(R.id.btArticle)
     public void goToNames(){
-        startActivity(new Intent(this, NamesActivity.class));
+        startActivity(new Intent(this, ArticlesActivity.class));
     }
 
 

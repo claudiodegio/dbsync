@@ -6,6 +6,7 @@ import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.claudiodegio.dbsync.CloudProvider;
 import com.claudiodegio.dbsync.DBSync;
@@ -28,25 +29,6 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
         setContentView(R.layout.activity_main_db1);
         super.onCreate(savedInstanceState);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
-                .setSyncFileByDriveId(mDriveId)
-                .setGoogleApiClient(mGoogleApiClient)
-                .build();
-
-        dbSync = new DBSync.Builder(this.getBaseContext())
-                .setCloudProvider(gDriveProvider)
-                .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
-                .setDataBaseName(app.db1OpenHelper.getDatabaseName())
-                .addTable(new TableToSync.Builder("name").build())
-                .setSchemaVersion(2)
-                .build();
 
         mFragment = TableViewerFragment.newInstance("db1.db", "name");
         mFragment.setOnItemClicked(this);
@@ -72,5 +54,22 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
     @Override
     public void onPostSync() {
         mFragment.reload();
+    }
+
+    @Override
+    public void onPostSelectFile() {
+        Log.d(TAG, "onPostSelectFile");
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+                .setSyncFileByDriveId(mDriveId)
+                .setGoogleApiClient(mGoogleApiClient)
+                .build();
+
+        dbSync = new DBSync.Builder(this.getBaseContext())
+                .setCloudProvider(gDriveProvider)
+                .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
+                .setDataBaseName(app.db1OpenHelper.getDatabaseName())
+                .addTable(new TableToSync.Builder("name").build())
+                .setSchemaVersion(2)
+                .build();
     }
 }

@@ -5,6 +5,7 @@ import android.app.Application;
 import com.claudiodegio.dbsync.sample.db1.Db1OpenHelper;
 import com.claudiodegio.dbsync.sample.db2.Db2OpenHelper;
 import com.claudiodegio.dbsync.sample.db3.Db3OpenHelper;
+import com.claudiodegio.dbsync.sample.db4.Db4OpenHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,7 @@ public class DbSyncApplication extends Application {
     public Db1OpenHelper db1OpenHelper;
     public Db2OpenHelper db2OpenHelper;
     public Db3OpenHelper db3OpenHelper;
-
-
+    public Db4OpenHelper db4OpenHelper;
 
     @Override
     public void onCreate() {
@@ -37,5 +37,8 @@ public class DbSyncApplication extends Application {
 
         db3OpenHelper = new Db3OpenHelper(this);
         db3OpenHelper.getReadableDatabase();
+
+        db4OpenHelper = new Db4OpenHelper(this);
+        db4OpenHelper.getReadableDatabase();
     }
 }

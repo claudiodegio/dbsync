@@ -11,6 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,8 +32,6 @@ public class DBSync {
     final private List<TableToSync> mTables;
     final private Context mCtx;
     final private String mDataBaseName;
-    final private int mSchemaVersion;
-
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({SERVER, CLIENT})
@@ -45,8 +45,7 @@ public class DBSync {
         this.mDB = db;
         this.mTables = tables;
         this.mDataBaseName = dataBaseName;
-        this.mManager = new SqlLiteManager(mDB, conflictPolicy, thresholdSeconds, schemaVersion);
-        this.mSchemaVersion = schemaVersion;
+        this.mManager = new SqlLiteManager(mDB, dataBaseName, tables, conflictPolicy, thresholdSeconds, schemaVersion);
     }
 
     // TODO fare la versione sincrona e async
@@ -78,10 +77,10 @@ public class DBSync {
                     syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
                 }
                 // populateUUID
-                mManager.populateUUID(mTables);
+                mManager.populateUUID();
 
                 // Generate the new sync timestamp
-                mManager.populateSendTime(currentTimestamp, mTables);
+                mManager.populateSendTime(currentTimestamp);
 
                 // Write the database file
                 tempFbFile = writeDateBaseFile();
@@ -100,6 +99,7 @@ public class DBSync {
                 }
                 Log.i(TAG, "conflict retry into sync try in 100 ms");
                 Thread.sleep(100);
+                break;
             }
 
             // Save Time
@@ -132,7 +132,7 @@ public class DBSync {
      * @throws SyncException
      */
     private File writeDateBaseFile() throws SyncException {
-        File tempDbFile;
+        File tempDbFile = null;
         FileOutputStream outStream;
         DatabaseWriter writer;
 
@@ -146,65 +146,18 @@ public class DBSync {
             writer = new JSonDatabaseWriter(outStream);
 
             // Write database start
-            writer.writeDatabase(mDataBaseName, mTables.size(), mSchemaVersion);
-
-            // Write tables
-            for (TableToSync table : mTables) {
-                serializeTable(table, writer);
-            }
+            mManager.writeDatabase(writer);
 
             // Close database
-             writer.close();
+            writer.close();
 
             Log.i(TAG, "Created DB file with size: " + tempDbFile.length());
             return tempDbFile;
         } catch (Exception e) {
+            FileUtils.deleteQuietly(tempDbFile);
             throw new SyncException(SyncStatus.ERROR_WRITING_TMP_DB, e.getMessage());
         }
     }
-
-    /**
-     * Write single table on database file
-     * @param table the table
-     * @param writer
-     * @throws IOException
-     */
-    private void serializeTable(final TableToSync table, final DatabaseWriter writer) throws IOException{
-        List<ColumnMetadata> columnsMetadata;
-        Cursor cur = null;
-        ColumnValue value = null;
-        Record record;
-
-        columnsMetadata = SqlLiteUtility.readTableMetadata(mDB, table.getName());
-
-        try {
-            cur = mDB.query(table.getName(), null, table.getFilter(), null, null, null, null);
-
-            Log.i(TAG, "Write table:" + table.getName() + " records:" + cur.getCount());
-
-            writer.writeTable(table.getName(), cur.getCount());
-
-            while (cur.moveToNext()) {
-                record = new Record();
-
-                for (ColumnMetadata colMeta : columnsMetadata) {
-                    if (!table.isColumnToIgnore(colMeta.getName())) {
-                        value = SqlLiteUtility.getCursorColumnValue(cur, colMeta);
-                        record.add(value);
-                    }
-                }
-
-                writer.writeRecord(record);
-            }
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (cur != null) {
-                cur.close();
-            }
-        }
-    }
-
 
     /**
      * Function to start sync of cloud database ad local
@@ -219,7 +172,7 @@ public class DBSync {
             reader = new JSonDatabaseReader(inputStream);
 
             // Start sync procedure with a the last timestamp
-            mManager.syncDatabase(reader, mTables, counter, lastSyncTimestamp, currentTimestamp);
+            mManager.syncDatabase(reader, counter, lastSyncTimestamp, currentTimestamp);
         } catch (IOException e) {
             // if the sync procedure generate an IOException i convert it
             throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, e);
