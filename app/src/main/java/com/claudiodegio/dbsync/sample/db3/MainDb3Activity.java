@@ -28,29 +28,6 @@ public class MainDb3Activity extends BaseMainDbActivity implements TableViewerFr
         setContentView(R.layout.activity_main_db3);
         super.onCreate(savedInstanceState);
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
-                .setSyncFileByDriveId(mDriveId)
-                .setGoogleApiClient(mGoogleApiClient)
-                .build();
-
-        TableToSync tableName = new TableToSync.Builder("name")
-                .setFilter("FILTER = 0")
-                .build();
-
-        dbSync = new DBSync.Builder(this.getBaseContext())
-                .setCloudProvider(gDriveProvider)
-                .setSQLiteDatabase(app.db3OpenHelper.getWritableDatabase())
-                .setDataBaseName(app.db3OpenHelper.getDatabaseName())
-                .addTable(tableName)
-                .setSchemaVersion(2)
-                .build();
 
         mFragment = TableViewerFragment.newInstance("db3.db", "name");
         mFragment.setOnItemClicked(this);
@@ -77,5 +54,26 @@ public class MainDb3Activity extends BaseMainDbActivity implements TableViewerFr
     @Override
     public void onPostSync() {
         mFragment.reload();
+    }
+
+    @Override
+    public void onPostSelectFile() {
+
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+                .setSyncFileByDriveId(mDriveId)
+                .setGoogleApiClient(mGoogleApiClient)
+                .build();
+
+        TableToSync tableName = new TableToSync.Builder("name")
+                .setFilter("FILTER = 0")
+                .build();
+
+        dbSync = new DBSync.Builder(this.getBaseContext())
+                .setCloudProvider(gDriveProvider)
+                .setSQLiteDatabase(app.db3OpenHelper.getWritableDatabase())
+                .setDataBaseName(app.db3OpenHelper.getDatabaseName())
+                .addTable(tableName)
+                .setSchemaVersion(2)
+                .build();
     }
 }

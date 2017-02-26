@@ -29,14 +29,14 @@ public class MainDb2Activity extends BaseMainDbActivity  {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setContentView(R.layout.activity_main_db2);
         super.onCreate(savedInstanceState);
+   }
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
+    @Override
+    public void onPostSync() {
+    }
 
+    @Override
+    public void onPostSelectFile() {
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setGoogleApiClient(mGoogleApiClient)
@@ -50,10 +50,6 @@ public class MainDb2Activity extends BaseMainDbActivity  {
                 .addTable(new TableToSync.Builder("category").build())
                 .setSchemaVersion(1)
                 .build();
-   }
-
-    @Override
-    public void onPostSync() {
     }
 
 

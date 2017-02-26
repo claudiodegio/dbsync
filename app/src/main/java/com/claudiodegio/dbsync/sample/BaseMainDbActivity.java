@@ -77,6 +77,13 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_FILE)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
         ButterKnife.bind(this);
 
         mMainHandler = new Handler();
@@ -103,6 +110,8 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
             mBtSync.setEnabled(true);
             mBtResetLastSyncTimestamp.setEnabled(true);
             readMetadata();
+
+            onPostSelectFile();
         }
     }
 
@@ -131,7 +140,11 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        dbSync.dispose();
+
+        if (dbSync != null) {
+            dbSync.dispose();
+        }
+
         mGoogleApiClient.disconnect();
     }
 
@@ -167,6 +180,11 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
                     mBtSync.setEnabled(true);
                     mBtResetLastSyncTimestamp.setEnabled(true);
                     readMetadata();
+
+                    if (dbSync != null) {
+                        dbSync.dispose();
+                    }
+                    onPostSync();
                 }
                 break;
         }
@@ -233,6 +251,9 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
     }
 
     public abstract void onPostSync();
+
+    public abstract void onPostSelectFile();
+
 
     private void readMetadata(){
 

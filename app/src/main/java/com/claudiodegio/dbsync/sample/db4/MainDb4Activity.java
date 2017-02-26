@@ -24,14 +24,14 @@ public class MainDb4Activity extends BaseMainDbActivity  {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         setContentView(R.layout.activity_main_db4);
         super.onCreate(savedInstanceState);
+   }
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
+    @Override
+    public void onPostSync() {
+    }
 
+    @Override
+    public void onPostSelectFile() {
 
 
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
@@ -57,10 +57,6 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .build();
 
 
-   }
-
-    @Override
-    public void onPostSync() {
     }
 
 
