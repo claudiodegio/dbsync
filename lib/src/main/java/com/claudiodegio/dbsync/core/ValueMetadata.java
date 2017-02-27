@@ -6,7 +6,10 @@ import android.support.annotation.IntDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-public class ColumnMetadata {
+/**
+ * Database column metadata
+ */
+public class ValueMetadata {
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_LONG, TYPE_STRING})
@@ -19,14 +22,14 @@ public class ColumnMetadata {
     private boolean notNull;
     private boolean pk;
 
-    public ColumnMetadata(String name, int type, boolean notNull, boolean pk) {
+    public ValueMetadata(String name, int type, boolean notNull, boolean pk) {
         this.name = name;
         this.type = type;
         this.notNull = notNull;
         this.pk = pk;
     }
 
-    public ColumnMetadata(String name, int type) {
+    public ValueMetadata(String name, int type) {
         this(name, type, false, false);
     }
 
@@ -48,7 +51,7 @@ public class ColumnMetadata {
 
     @Override
     public String toString() {
-        return "ColumnMetadata{" +
+        return "ValueMetadata{" +
                 "name='" + name + '\'' +
                 ", type=" + type +
                 ", notNull=" + notNull +

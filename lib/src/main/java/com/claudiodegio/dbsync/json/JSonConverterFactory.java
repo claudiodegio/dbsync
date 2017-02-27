@@ -1,14 +1,17 @@
 package com.claudiodegio.dbsync.json;
 
-import com.claudiodegio.dbsync.core.ColumnMetadata;
+import com.claudiodegio.dbsync.core.ValueMetadata;
 
+/**
+ * Factory for create right converter
+ */
 public class JSonConverterFactory {
 
-    static JSonConverter buildConverter(final ColumnMetadata metadata) {
+    static JSonConverter buildConverter(final ValueMetadata metadata) {
         switch (metadata.getType()) {
-            case ColumnMetadata.TYPE_LONG:
+            case ValueMetadata.TYPE_LONG:
                 return new JSonLongConverter();
-            case ColumnMetadata.TYPE_STRING:
+            case ValueMetadata.TYPE_STRING:
                 return new JSonStringConverter();
             default:
                 throw new RuntimeException("Format non supported");

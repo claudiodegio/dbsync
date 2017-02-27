@@ -1,8 +1,5 @@
 package com.claudiodegio.dbsync.core;
 
-/**
- * Created by claud on 04/02/2017.
- */
 
 public class RecordCounter {
 

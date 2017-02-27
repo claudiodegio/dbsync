@@ -1,10 +1,10 @@
 package com.claudiodegio.dbsync.json;
 
 
-import com.claudiodegio.dbsync.core.ColumnMetadata;
-import com.claudiodegio.dbsync.core.ColumnValue;
-import com.claudiodegio.dbsync.core.DatabaseWriter;
+import com.claudiodegio.dbsync.core.ValueMetadata;
 import com.claudiodegio.dbsync.core.Record;
+import com.claudiodegio.dbsync.core.Value;
+import com.claudiodegio.dbsync.core.DatabaseWriter;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -56,11 +56,11 @@ public class JSonDatabaseWriter implements DatabaseWriter {
     }
     @Override
     public void writeRecord(Record record) throws IOException {
-        ColumnMetadata metadata;
+        ValueMetadata metadata;
         JSonConverter converter;
 
         mGen.writeStartObject();
-        for (ColumnValue value : record) {
+        for (Value value : record) {
 
             metadata = value.getMetadata();
 
@@ -68,10 +68,10 @@ public class JSonDatabaseWriter implements DatabaseWriter {
 
             converter.columnValueToJson(mGen, value);
             /*switch (value.getMetadata().getType()) {
-                case ColumnMetadata.TYPE_LONG:
+                case ValueMetadata.TYPE_LONG:
                     mGen.writeNumberField(fieldName, value.getValueLong());
                     break;
-                case ColumnMetadata.TYPE_STRING:
+                case ValueMetadata.TYPE_STRING:
                     mGen.writeStringField(fieldName, value.getValueString());
                     break;
             }*/

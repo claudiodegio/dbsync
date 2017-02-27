@@ -1,26 +1,28 @@
 package com.claudiodegio.dbsync.core;
 
-// Potrei farlo con il decorator
-public class ColumnValue {
+/**
+ * Class to hold column value
+ */
+public class Value {
 
     private String mValueString;
     private long mValueLong;
-    private ColumnMetadata mMetadata;
+    private ValueMetadata mMetadata;
     private boolean mNull = false;
 
-    public ColumnValue(String valueString, ColumnMetadata metadata) {
+    public Value(String valueString, ValueMetadata metadata) {
         this.mValueString = valueString;
         this.mMetadata = metadata;
         this.mNull = false;
     }
 
-    public ColumnValue(long valueLong, ColumnMetadata metadata) {
+    public Value(long valueLong, ValueMetadata metadata) {
         this.mValueLong = valueLong;
         this.mMetadata = metadata;
         this.mNull = false;
     }
 
-    public ColumnValue(ColumnMetadata metadata) {
+    public Value(ValueMetadata metadata) {
         this.mMetadata = metadata;
         this.mNull = true;
     }
@@ -33,7 +35,7 @@ public class ColumnValue {
         return mValueLong;
     }
 
-    public ColumnMetadata getMetadata() {
+    public ValueMetadata getMetadata() {
         return mMetadata;
     }
 
@@ -43,9 +45,9 @@ public class ColumnValue {
 
     public String toSelectionArg(){
         switch (mMetadata.getType()) {
-            case ColumnMetadata.TYPE_LONG:
+            case ValueMetadata.TYPE_LONG:
                 return Long.toString(mValueLong);
-            case ColumnMetadata.TYPE_STRING:
+            case ValueMetadata.TYPE_STRING:
                 return mValueString;
             default:
                 return null;
@@ -56,7 +58,7 @@ public class ColumnValue {
     public String toString() {
         if (isNull()) {
             return "[NULL]";
-        } else if (mMetadata.getType() == ColumnMetadata.TYPE_LONG) {
+        } else if (mMetadata.getType() == ValueMetadata.TYPE_LONG) {
             return Long.toString(mValueLong) + "L";
         } else {
             return mValueString;

@@ -7,7 +7,6 @@ public class Database {
     final private int mTableCount;
     final private int mSchemaVersion;
 
-
     public Database(String name, int formatVersion, int tableCount, int schemaVersion) {
         this.mName = name;
         this.mFormatVersion = formatVersion;

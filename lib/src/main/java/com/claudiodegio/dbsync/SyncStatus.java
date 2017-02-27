@@ -6,6 +6,9 @@ import android.support.annotation.IntDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * Sync status
+ */
 public class SyncStatus {
 
     @Retention(RetentionPolicy.SOURCE)
@@ -32,14 +35,26 @@ public class SyncStatus {
        this(statusCode, null);
     }
 
+    /**
+     * Retrun the status code
+     * @return the status code
+     */
     public int getStatusCode() {
         return mStatusCode;
     }
 
+    /**
+     * Return the error message on error
+     * @return
+     */
     public String getStatusMessage() {
         return mMessage;
     }
 
+    /**
+     * Return if operation is success or not
+     * @return true on success otherwise false
+     */
     public boolean isSuccess(){
         return mStatusCode == OK;
     }

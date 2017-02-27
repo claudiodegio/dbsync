@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync.core;
+package com.claudiodegio.dbsync.exception;
 
 
 import com.claudiodegio.dbsync.SyncStatus;

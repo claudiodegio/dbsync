@@ -2,12 +2,12 @@ package com.claudiodegio.dbsync.json;
 
 import android.text.TextUtils;
 
-import com.claudiodegio.dbsync.core.ColumnMetadata;
-import com.claudiodegio.dbsync.core.ColumnValue;
 import com.claudiodegio.dbsync.core.Database;
-import com.claudiodegio.dbsync.core.DatabaseReader;
-import com.claudiodegio.dbsync.core.Record;
 import com.claudiodegio.dbsync.core.Table;
+import com.claudiodegio.dbsync.core.ValueMetadata;
+import com.claudiodegio.dbsync.core.Record;
+import com.claudiodegio.dbsync.core.Value;
+import com.claudiodegio.dbsync.core.DatabaseReader;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -74,7 +74,7 @@ public class JSonDatabaseReader implements DatabaseReader {
     }
 
     @Override
-    public Record readRecord(final Map<String, ColumnMetadata> colMetadataMap) throws IOException {
+    public Record readRecord(final Map<String, ValueMetadata> colMetadataMap) throws IOException {
         if (mState.getElementType() != RECORD) {
             throw new IOException("Unable to read wrong current element type " + mState.getElementType());
         }
@@ -270,11 +270,11 @@ public class JSonDatabaseReader implements DatabaseReader {
         void handle() throws IOException {
         }
 
-        void handle(final Map<String, ColumnMetadata> colMetadataMap) throws IOException {
+        void handle(final Map<String, ValueMetadata> colMetadataMap) throws IOException {
             String fieldName;
-            ColumnMetadata columnMetadata;
+            ValueMetadata columnMetadata;
             JSonConverter converter;
-            ColumnValue value;
+            Value value;
 
             // Create a new record
             mCurrentRecord = new Record();

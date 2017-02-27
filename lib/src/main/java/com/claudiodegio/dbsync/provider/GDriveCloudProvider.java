@@ -7,7 +7,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
-import com.claudiodegio.dbsync.core.SyncException;
+import com.claudiodegio.dbsync.exception.SyncBuildException;
+import com.claudiodegio.dbsync.exception.SyncException;
 import com.claudiodegio.dbsync.SyncStatus;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Result;
@@ -28,6 +29,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Cloud provider implementation for Driver
+ */
 public class GDriveCloudProvider implements CloudProvider {
 
     private final static String TAG = "GDriveCloudProvider";
@@ -87,7 +91,6 @@ public class GDriveCloudProvider implements CloudProvider {
             Log.i(TAG, "try to commit file copy done");
 
             // Commit del file
-            // TODO gestire il conflitto
             executionOptions = new ExecutionOptions.Builder()
                     .setNotifyOnCompletion(true)
                     .setConflictStrategy(ExecutionOptions.CONFLICT_STRATEGY_KEEP_REMOTE)
@@ -197,7 +200,7 @@ public class GDriveCloudProvider implements CloudProvider {
         public void onReceive(Context context, Intent intent) {
             final DriveId driveId = intent.getParcelableExtra(GDriveEventService.BUNDLE_DRIVEID);
 
-            Log.i(TAG, "onReceive complention event for driveID:" + driveId.encodeToString());
+            Log.i(TAG, "onReceive completion event for driveID:" + driveId.encodeToString());
 
             if (driveId.equals(mDriveId)) {
                 result =  intent.getIntExtra(GDriveEventService.BUNDLE_SUCCESS, -1);
@@ -219,34 +222,64 @@ public class GDriveCloudProvider implements CloudProvider {
         }
     }
 
+    /**
+     * Builder class for Drive Provider
+     */
     public static class Builder {
 
         private GoogleApiClient mGoogleApiClient;
         private Context mCtx;
-
         private DriveId mDriveId;
 
         public Builder(final Context ctx) {
             this.mCtx = ctx;
         }
 
+        /**
+         * The the google api client, must connected and configured
+         * @param googleApiClient the client to set
+         */
         public Builder setGoogleApiClient(final GoogleApiClient googleApiClient) {
             this.mGoogleApiClient = googleApiClient;
             return this;
         }
 
+        /**
+         * Set the to use to sync
+         * @param driveId the drive file
+         */
         public Builder setSyncFileByDriveId(DriveId driveId) {
             this.mDriveId = driveId;
             return this;
         }
 
+        /**
+         * Set the to use to sync
+         * @param s the drive file as encoded string
+         */
         public Builder setSyncFileByString(String s) {
             this.mDriveId = DriveId.decodeFromString(s);
             return this;
         }
 
+        /**
+         * Build a new GDriveCloudProvider
+         * @return the new created cloud provider
+         */
         public GDriveCloudProvider build(){
-            // TODO check
+
+            if (mGoogleApiClient == null) {
+                throw new SyncBuildException("Missing google GoogleApiClient");
+            }
+
+            if (!mGoogleApiClient.isConnected()) {
+                throw new SyncBuildException("The GoogleApiClient is not connected");
+            }
+
+            if (mDriveId == null) {
+                throw new SyncBuildException("Missing DriveFile");
+            }
+
             return new GDriveCloudProvider(mCtx, mGoogleApiClient, mDriveId);
         }
     }

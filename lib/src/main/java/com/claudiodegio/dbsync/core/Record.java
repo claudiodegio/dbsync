@@ -6,16 +6,16 @@ import org.apache.commons.collections4.Predicate;
 import java.util.ArrayList;
 
 
-public class Record extends ArrayList<ColumnValue> {
+public class Record extends ArrayList<Value> {
 
 
-    public ColumnValue findField(final String fieldName){
+    public Value findField(final String fieldName){
 
-        ColumnValue value;
+        Value value;
 
-        value = IterableUtils.find(this, new Predicate<ColumnValue>() {
+        value = IterableUtils.find(this, new Predicate<Value>() {
             @Override
-            public boolean evaluate(ColumnValue object) {
+            public boolean evaluate(Value object) {
                 return object.getMetadata().getName().equals(fieldName);
             }
         });
