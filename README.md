@@ -51,6 +51,8 @@ and rewrite the json cloud file and upload to file storage.
 
 Note: with GDrive you can share between more user
 
+Your table need to have two columns for syn SEND_TIME long and CLOUD_ID TEXT unique
+
 ## Features
 
 The library support:
@@ -61,13 +63,102 @@ The library support:
 * Support for ignore selected column
 * Support for filter on what to sync (usefull for multi account application but different sync file)
 
-
 Not supported yet
 * Other cloud storage
 * Support for images and file
+* Delete elements (to solve use a state column or column whit deleted flag)
 
 # Usage
 
+Simple example usage of library
+
+#### 1 Table
+```java
+CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+        .setSyncFileByDriveId(mDriveId)
+        .setGoogleApiClient(mGoogleApiClient)
+        .build();
+
+DBSync  dbSync = new DBSync.Builder(this.getBaseContext())
+        .setCloudProvider(gDriveProvider)
+        .setSQLiteDatabase(mDB)
+        .setDataBaseName("db1")
+        .addTable(new TableToSync.Builder("name").build())
+        .build();
+```
+#### 2 Table
+```java
+
+CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+        .setSyncFileByDriveId(mDriveId)
+        .setGoogleApiClient(mGoogleApiClient)
+        .build();
+
+DBSync dbSync = new DBSync.Builder(this.getBaseContext())
+        .setCloudProvider(gDriveProvider)
+        .setSQLiteDatabase(mDb)
+        .setDataBaseName("db2")
+        .addTable(new TableToSync.Builder("name").build())
+        .addTable(new TableToSync.Builder("category").build())
+        .build();
+```
+
+#### 1 Table whit filter
+```java
+CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+        .setSyncFileByDriveId(mDriveId)
+        .setGoogleApiClient(mGoogleApiClient)
+        .build();
+
+TableToSync tableName = new TableToSync.Builder("name")
+        .setFilter("FILTER = 0") // send data with apply FILTER = 0 before send
+        .build();
+
+DBSync dbSync = new DBSync.Builder(this.getBaseContext())
+        .setCloudProvider(gDriveProvider)
+        .setSQLiteDatabase(mDB)
+        .setDataBaseName("db3")
+        .addTable(tableName)
+        .build();
+```
+
+#### 2 Table whit join
+```java
+CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+        .setSyncFileByDriveId(mDriveId)
+        .setGoogleApiClient(mGoogleApiClient)
+        .build();
+
+// Keep the order
+TableToSync tableCategory = new TableToSync.Builder("CATEGORY")
+        .build();
+
+TableToSync tableArticle = new TableToSync.Builder("ARTICLE")
+        .addJoinTable(tableCategory, "CATEGORY_ID")
+        .build();
+
+DBSync dbSync = new DBSync.Builder(this.getBaseContext())
+        .setCloudProvider(gDriveProvider)
+        .setSQLiteDatabase(mDB)
+        .setDataBaseName("db4")
+        .addTable(tableCategory)
+        .addTable(tableArticle)
+        .build();
+```
+
+### How sync
+
+To start sync process
+
+```java
+dbSync.sync();
+```
+
+### How Insert/Update Data
+
+Every time you insert or update a record simple set SEND_TIME to null
+
+### How sync
 
 # Installation
 **Add the dependencies to your gradle file:**
