@@ -7,7 +7,7 @@ Small library for sync android SqlLite database to cloud storage (for now only G
 There is not solution to sync SqLite database between device without the of custom
 server application or use of paid online cloud service. My solution it's base
 a json file on GDrive cloud account of user with no server involved, so all
-base are private to user e non saved on server.
+data are private to user e non saved on server.
 
 ## How work
 
