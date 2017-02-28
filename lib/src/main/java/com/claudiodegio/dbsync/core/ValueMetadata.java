@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 
 import android.support.annotation.IntDef;
@@ -6,27 +6,30 @@ import android.support.annotation.IntDef;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-public class ColumnMetadata {
+/**
+ * Database column metadata
+ */
+public class ValueMetadata {
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({TYPE_LONG, TYPE_STRING})
     public @interface Type {}
-    static final int TYPE_LONG = 0;
-    static final int TYPE_STRING = 1;
+    static final public int TYPE_LONG = 0;
+    static final public int TYPE_STRING = 1;
 
     private String name;
     private @Type int type;
     private boolean notNull;
     private boolean pk;
 
-    public ColumnMetadata(String name, int type, boolean notNull, boolean pk) {
+    public ValueMetadata(String name, int type, boolean notNull, boolean pk) {
         this.name = name;
         this.type = type;
         this.notNull = notNull;
         this.pk = pk;
     }
 
-    public ColumnMetadata(String name, int type) {
+    public ValueMetadata(String name, int type) {
         this(name, type, false, false);
     }
 
@@ -48,7 +51,7 @@ public class ColumnMetadata {
 
     @Override
     public String toString() {
-        return "ColumnMetadata{" +
+        return "ValueMetadata{" +
                 "name='" + name + '\'' +
                 ", type=" + type +
                 ", notNull=" + notNull +

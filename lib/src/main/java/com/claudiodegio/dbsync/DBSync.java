@@ -1,15 +1,23 @@
 package com.claudiodegio.dbsync;
 
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.IntDef;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.claudiodegio.dbsync.core.JoinTable;
+import com.claudiodegio.dbsync.core.Table;
+import com.claudiodegio.dbsync.exception.SyncBuildException;
+import com.claudiodegio.dbsync.provider.CloudProvider;
+import com.claudiodegio.dbsync.core.DatabaseCounter;
+import com.claudiodegio.dbsync.core.DatabaseWriter;
+import com.claudiodegio.dbsync.exception.SyncException;
+import com.claudiodegio.dbsync.json.JSonDatabaseReader;
+import com.claudiodegio.dbsync.json.JSonDatabaseWriter;
+import com.claudiodegio.dbsync.core.SqlLiteManager;
 
 import org.apache.commons.io.FileUtils;
 
@@ -22,6 +30,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Main class for sync datase process
+ */
 public class DBSync {
 
     final static private String TAG = "DBSync";
@@ -36,8 +47,8 @@ public class DBSync {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({SERVER, CLIENT})
     public @interface ConflictPolicy {}
-    static final int SERVER = 1;
-    static final int CLIENT = 2;
+    static final public int SERVER = 1;
+    static final public int CLIENT = 2;
 
     private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
         this.mCtx = ctx;
@@ -48,7 +59,10 @@ public class DBSync {
         this.mManager = new SqlLiteManager(mDB, dataBaseName, tables, conflictPolicy, thresholdSeconds, schemaVersion);
     }
 
-    // TODO fare la versione sincrona e async
+    /**
+     * Start the sync process
+     * @return result of sync
+     */
     public SyncResult sync() {
         File tempFbFile = null;
         InputStream inputStream = null;
@@ -220,6 +234,10 @@ public class DBSync {
     private String buildPreferenceFileName(){
         return "com.claudiodegio.dbsync." + mDataBaseName + ".STORAGE";
     }
+
+    /**
+     * Builder class sync object
+     */
     public static class Builder {
 
         private CloudProvider mCloudProvider;
@@ -228,51 +246,108 @@ public class DBSync {
         private List<TableToSync> mTables = new ArrayList<>();
         private Context mCtx;
         @ConflictPolicy private int mConflictPolicy = CLIENT;
-        private int mThresholdSeconds = 300;
+        private int mToleranceSeconds = 300;
         private int mSchemaVersion = 1;
 
         public Builder(final Context ctx) {
             this.mCtx = ctx;
         }
 
+        /**
+         * Set the cloud provider
+         * @param cloudProvider the cloud provider
+         */
         public Builder setCloudProvider(final CloudProvider cloudProvider) {
             mCloudProvider = cloudProvider;
             return this;
         }
 
+        /**
+         * Set the connection to sqlite database
+         * @param db the db
+         */
         public Builder setSQLiteDatabase(final SQLiteDatabase db) {
             this.mDB = db;
             return this;
         }
 
+        /**
+         * Add a table to sync
+         * @param table the table to sync
+         */
         public Builder addTable(final TableToSync table) {
             this.mTables.add(table);
             return this;
         }
 
-
+        /**
+         * Set the database name
+         * @param dataBaseName the db name
+         */
         public Builder setDataBaseName(String dataBaseName) {
             this.mDataBaseName = dataBaseName;
             return this;
         }
 
+        /**
+         * Set the conflict policy
+         * @param conflictPolicy the conflict policy to set 
+         */
         public Builder setConflictPolicy(@ConflictPolicy int conflictPolicy){
             this.mConflictPolicy = conflictPolicy;
             return this;
         }
 
-        public Builder setThresholdSeconds(int thresholdSeconds) {
-            this.mThresholdSeconds = thresholdSeconds;
+        /**
+         * Set tolerance of send time
+         * @param toleranceSeconds the tolerance in seconds
+         */
+        public Builder setToleranceSeconds(int toleranceSeconds) {
+            this.mToleranceSeconds = toleranceSeconds;
             return this;
         }
 
+        /**
+         * Set the database schema version
+         * @param schemaVersion the schema version
+ì         */
         public Builder setSchemaVersion(int schemaVersion) {
             this.mSchemaVersion = schemaVersion;
             return this;
         }
 
+        /**
+         * Build a new syn object
+         */
         public DBSync build(){
-            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mConflictPolicy, mThresholdSeconds, mSchemaVersion);
+            List<String> listTable;
+            if (mCloudProvider == null) {
+                throw new SyncBuildException("Missing the CloudProvider");
+            }
+
+            if (mDB == null) {
+                throw new SyncBuildException("Missing the DB");
+            }
+
+            if (TextUtils.isEmpty(mDataBaseName)) {
+                throw new SyncBuildException("Missing the database name");
+            }
+
+            if (mTables.isEmpty()) {
+                throw new SyncBuildException("No table to sync");
+            }
+
+           listTable = new ArrayList<>(mTables.size());
+            for (TableToSync tableToSync : mTables) {
+                listTable.add(tableToSync.getName());
+                for (JoinTable joinTable : tableToSync.getJoinTable()) {
+                    if (!listTable.contains(joinTable.getReferenceTable().getName())) {
+                        throw new SyncBuildException("Wrong table order, the table " + joinTable.getReferenceTable().getName() + " must be declared before " + tableToSync.getName());
+                    }
+                }
+            }
+
+            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mConflictPolicy, mToleranceSeconds, mSchemaVersion);
         }
     }
 }

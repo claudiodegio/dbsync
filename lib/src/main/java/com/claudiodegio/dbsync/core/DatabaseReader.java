@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 import java.io.IOException;
 import java.util.Map;
@@ -11,7 +11,7 @@ public interface DatabaseReader {
 
     Table readTable() throws IOException;
 
-    Record readRecord(Map<String, ColumnMetadata> columnMetadataMap) throws IOException;
+    Record readRecord(Map<String, ValueMetadata> columnMetadataMap) throws IOException;
 
     void close();
 }

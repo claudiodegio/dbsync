@@ -1,11 +1,11 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class DatabaseCounter extends RecordCounter{
+public class DatabaseCounter extends RecordCounter {
     private Map<String, RecordCounter> mCounterTable;
 
     public DatabaseCounter() {

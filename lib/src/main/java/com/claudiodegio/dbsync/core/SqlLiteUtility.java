@@ -1,15 +1,11 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.google.android.gms.drive.Metadata;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,29 +15,29 @@ import java.util.regex.Pattern;
 public class SqlLiteUtility {
 
 
-    public static Map<String, ColumnMetadata> readTableMetadataAsMap(final SQLiteDatabase db, final String tableName) {
-        List<ColumnMetadata> columns;
-        Map<String, ColumnMetadata> maps;
+    public static Map<String, ValueMetadata> readTableMetadataAsMap(final SQLiteDatabase db, final String tableName) {
+        List<ValueMetadata> columns;
+        Map<String, ValueMetadata> maps;
 
         columns = readTableMetadata(db, tableName);
 
         maps = new HashMap<>();
 
-        for (ColumnMetadata column : columns) {
+        for (ValueMetadata column : columns) {
             maps.put(column.getName(), column);
         }
 
         return maps;
     }
 
-    public static List<ColumnMetadata> readTableMetadata(final SQLiteDatabase db, final String tableName) {
+    public static List<ValueMetadata> readTableMetadata(final SQLiteDatabase db, final String tableName) {
 
         Cursor cursor = null;
         String columnName;
         String columnType;
         int notNull, pk, type;
 
-        List<ColumnMetadata> list = new ArrayList<>();
+        List<ValueMetadata> list = new ArrayList<>();
 
         cursor = db.rawQuery("PRAGMA table_info('" + tableName + "')", null);
 
@@ -54,16 +50,16 @@ public class SqlLiteUtility {
 
             switch (columnType) {
                 case "INTEGER":
-                    type = ColumnMetadata.TYPE_LONG;
+                    type = ValueMetadata.TYPE_LONG;
                     break;
                 case "TEXT":
-                    type = ColumnMetadata.TYPE_STRING;
+                    type = ValueMetadata.TYPE_STRING;
                     break;
                 default:
                     throw new RuntimeException("Type " + columnType + " non supported !!!");
             }
 
-           list.add(new ColumnMetadata(columnName, type, notNull == 1, pk == 1));
+           list.add(new ValueMetadata(columnName, type, notNull == 1, pk == 1));
         }
 
         cursor.close();
@@ -86,35 +82,35 @@ public class SqlLiteUtility {
         return cursor.getLong(index);
     }
 
-    public static ColumnValue getCursorColumnValue(final Cursor cursor, final String columnName, @ColumnMetadata.Type int type) {
-        return SqlLiteUtility.getCursorColumnValue(cursor,  new ColumnMetadata(columnName, type));
+    public static Value getCursorColumnValue(final Cursor cursor, final String columnName, @ValueMetadata.Type int type) {
+        return SqlLiteUtility.getCursorColumnValue(cursor,  new ValueMetadata(columnName, type));
     }
 
-    public static ColumnValue getCursorColumnValue(final Cursor cursor, final ColumnMetadata metadata) {
+    public static Value getCursorColumnValue(final Cursor cursor, final ValueMetadata metadata) {
         String columnName;
         int index;
         long valueLong;
         String valueString;
-        ColumnValue value;
+        Value value;
 
         columnName = metadata.getName();
         index = cursor.getColumnIndex(columnName);
 
         if (cursor.isNull(index)) {
-            value =  new ColumnValue(metadata);
-        } else if(metadata.getType() == ColumnMetadata.TYPE_LONG) {
+            value =  new Value(metadata);
+        } else if(metadata.getType() == ValueMetadata.TYPE_LONG) {
             valueLong = getCursorLong(cursor, columnName);
-            value = new ColumnValue(valueLong, metadata);
+            value = new Value(valueLong, metadata);
         } else {
             valueString = getCursorString(cursor, columnName);
-            value = new ColumnValue(valueString, metadata);
+            value = new Value(valueString, metadata);
         }
 
         return value;
     }
 
-    public static void columnValueToContentValues(final ColumnValue value, final ContentValues contentValues) {
-        ColumnMetadata metadata;
+    public static void columnValueToContentValues(final Value value, final ContentValues contentValues) {
+        ValueMetadata metadata;
         String fieldName;
 
         fieldName = value.getMetadata().getName();
@@ -127,10 +123,10 @@ public class SqlLiteUtility {
         metadata = value.getMetadata();
 
         switch (metadata.getType()) {
-            case ColumnMetadata.TYPE_LONG:
+            case ValueMetadata.TYPE_LONG:
                 contentValues.put(fieldName, value.getValueLong());
                 break;
-            case ColumnMetadata.TYPE_STRING:
+            case ValueMetadata.TYPE_STRING:
                 contentValues.put(fieldName, value.getValueString());
                 break;
         }

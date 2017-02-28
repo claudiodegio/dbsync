@@ -1,8 +1,4 @@
-package com.claudiodegio.dbsync;
-
-/**
- * Created by claud on 01/02/2017.
- */
+package com.claudiodegio.dbsync.core;
 
 public class Database {
 
@@ -10,7 +6,6 @@ public class Database {
     final private int mFormatVersion;
     final private int mTableCount;
     final private int mSchemaVersion;
-
 
     public Database(String name, int formatVersion, int tableCount, int schemaVersion) {
         this.mName = name;

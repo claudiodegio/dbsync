@@ -1,5 +1,10 @@
 package com.claudiodegio.dbsync;
 
+import com.claudiodegio.dbsync.core.DatabaseCounter;
+
+/**
+ * Result of sync process
+ */
 public class SyncResult {
 
     private SyncStatus mSyncStatus;

@@ -1,6 +1,7 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.exception;
 
 
+import com.claudiodegio.dbsync.SyncStatus;
 
 public class SyncException extends RuntimeException {
 

@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.core;
 
 
 import android.content.ContentValues;
@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.Predicate;
 
@@ -18,7 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.claudiodegio.dbsync.SqlLiteUtility.SqlWithBinding;
+import com.claudiodegio.dbsync.DBSync;
+import com.claudiodegio.dbsync.SyncStatus;
+import com.claudiodegio.dbsync.TableToSync;
+import com.claudiodegio.dbsync.exception.SyncException;
+import com.claudiodegio.dbsync.json.JSonDatabaseReader;
 
 /**
  * Classe di gestione delle operazioni su database
@@ -34,7 +37,8 @@ public class SqlLiteManager {
 
     final private SQLiteDatabase mDB;
     final private String mDataBaseName;
-    @DBSync.ConflictPolicy final private int mConflictPolicy;
+    @DBSync.ConflictPolicy
+    final private int mConflictPolicy;
     final private int mThresholdSeconds;
     final private int mSchemaVersion;
     final private List<TableToSync> mTableToSync;
@@ -55,9 +59,9 @@ public class SqlLiteManager {
         Table dbCurrentTable;
         Record dbCurrentRecord;
         TableToSync currentTableToSync = null;
-        Map<String, ColumnMetadata> columns = null;
+        Map<String, ValueMetadata> columns = null;
         String joinColumnName;
-        ColumnMetadata joinColumnMetadata;
+        ValueMetadata joinColumnMetadata;
         int elementType;
 
         Log.i(TAG, "start syncDatabase");
@@ -100,7 +104,7 @@ public class SqlLiteManager {
                         // Add the records columns for join tables
                         for (JoinTable joinTable : currentTableToSync.getJoinTable()) {
                             joinColumnName = JOIN_COLUMN_PREFIX + joinTable.getJoinColumn();
-                            joinColumnMetadata = new ColumnMetadata(joinColumnName.toUpperCase(), ColumnMetadata.TYPE_STRING);
+                            joinColumnMetadata = new ValueMetadata(joinColumnName.toUpperCase(), ValueMetadata.TYPE_STRING);
                             columns.put(joinColumnName, joinColumnMetadata);
                         }
 
@@ -127,8 +131,8 @@ public class SqlLiteManager {
 
     private void syncRecord(final TableToSync tableToSync, final Record record, final DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp){
 
-        ColumnValue valueSendTime;
-        ColumnValue valueCloudId;
+        Value valueSendTime;
+        Value valueCloudId;
 
         long sendTime;
         DBRecordMatch dbRecordMatch = null;
@@ -213,7 +217,7 @@ public class SqlLiteManager {
         String sql;
         String cloudId;
         Cursor cur = null;
-        SqlWithBinding sqlWithBinding;
+        SqlLiteUtility.SqlWithBinding sqlWithBinding;
         String [] args;
         Long id, sendTime;
 
@@ -230,7 +234,7 @@ public class SqlLiteManager {
         // Extract selection args for record
         for (int i = 0;  i < sqlWithBinding.getArgs().length; ++i) {
             String fieldToBind = sqlWithBinding.getArgs()[i];
-            ColumnValue value = record.findField(fieldToBind);
+            Value value = record.findField(fieldToBind);
             args[i] = value.toSelectionArg();
         }
 
@@ -319,7 +323,7 @@ public class SqlLiteManager {
         contentValues = new ContentValues();
 
         // Work on join columns
-        for (ColumnValue value : record) {
+        for (Value value : record) {
             final String fieldName = value.getMetadata().getName();
 
             // Ignore id columns, and join columns
@@ -452,9 +456,9 @@ public class SqlLiteManager {
     }
 
     private void serializeTable(final TableToSync table, final DatabaseWriter writer) throws IOException{
-        List<ColumnMetadata> columnsMetadata;
+        List<ValueMetadata> columnsMetadata;
         Cursor cur = null;
-        ColumnValue value = null;
+        Value value = null;
         Record record;
         String sql;
         String sqlJoin;
@@ -506,7 +510,7 @@ public class SqlLiteManager {
             while (cur.moveToNext()) {
                 record = new Record();
 
-                for (ColumnMetadata colMeta : columnsMetadata) {
+                for (ValueMetadata colMeta : columnsMetadata) {
                     if (!table.isColumnToIgnore(colMeta.getName())
                             && !listJoinColumn.contains(colMeta.getName())) {
                         value = SqlLiteUtility.getCursorColumnValue(cur, colMeta);
@@ -516,7 +520,7 @@ public class SqlLiteManager {
 
                 for (String joinColumn : listJoinColumn) {
                     joinColumn = JOIN_COLUMN_PREFIX + joinColumn;
-                    value = SqlLiteUtility.getCursorColumnValue(cur,  joinColumn.toUpperCase(), ColumnMetadata.TYPE_STRING);
+                    value = SqlLiteUtility.getCursorColumnValue(cur,  joinColumn.toUpperCase(), ValueMetadata.TYPE_STRING);
                     record.add(value);
                 }
 

@@ -164,6 +164,7 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
                 if (resultCode == RESULT_OK) {
                     mGoogleApiClient.connect();
                 }
+                break;
             case REQUEST_CODE_SELECT_FILE:
             case REQUEST_CODE_NEW_FILE:
                 if (resultCode == RESULT_OK) {
@@ -184,7 +185,7 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
                     if (dbSync != null) {
                         dbSync.dispose();
                     }
-                    onPostSync();
+                    onPostSelectFile();
                 }
                 break;
         }
@@ -297,6 +298,8 @@ public abstract class BaseMainDbActivity extends BaseActivity implements  Google
                 mTvStatus.setText("Fail: " + result.getStatus().getStatusCode() + "\n" + result.getStatus().getStatusMessage());
                 mTvLastSyncTimestamp.setText("");
             }
+
+            onPostSync();
         }
     }
 
