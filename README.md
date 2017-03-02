@@ -145,6 +145,14 @@ DBSync dbSync = new DBSync.Builder(this.getBaseContext())
         .addTable(tableArticle)
         .build();
 ```
+### Configure of gdrive service
+```xml
+<service android:name="com.claudiodegio.dbsync.provider.GDriveEventService" android:exported="true">
+    <intent-filter>
+        <action android:name="com.google.android.gms.drive.events.HANDLE_EVENT"/>
+    </intent-filter>
+</service>
+```
 
 ### How sync
 
@@ -157,8 +165,6 @@ dbSync.sync();
 ### How Insert/Update Data
 
 Every time you insert or update a record simple set SEND_TIME to null
-
-### How sync
 
 # Installation
 **Add the dependencies to your gradle file:**

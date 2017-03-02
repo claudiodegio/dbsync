@@ -1,4 +1,4 @@
-package com.claudiodegio.dbsync.sample.db1;
+package com.claudiodegio.dbsync.sample.db5;
 
 
 import android.app.FragmentManager;
@@ -16,7 +16,7 @@ import com.claudiodegio.dbsync.sample.BaseMainDbActivity;
 import com.claudiodegio.dbsync.sample.R;
 import com.claudiodegio.dbsync.sample.core.TableViewerFragment;
 
-public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFragment.OnEditListener {
+public class MainDb5Activity extends BaseMainDbActivity implements TableViewerFragment.OnEditListener {
 
     private final static String TAG = "MainDb5Activity";
 
@@ -24,11 +24,11 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        setContentView(R.layout.activity_main_db1);
+        setContentView(R.layout.activity_main_db5);
         super.onCreate(savedInstanceState);
 
 
-        mFragment = TableViewerFragment.newInstance("db1.db", "name");
+        mFragment = TableViewerFragment.newInstance("db5.db", "category");
         mFragment.setOnItemClicked(this);
 
         FragmentManager fm = getFragmentManager();
@@ -62,11 +62,15 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
                 .setGoogleApiClient(mGoogleApiClient)
                 .build();
 
+        TableToSync tableToSync = new TableToSync.Builder("category")
+                .addMatchRule("NAME = :NAME")
+                .build();
+
         dbSync = new DBSync.Builder(this.getBaseContext())
                 .setCloudProvider(gDriveProvider)
-                .setSQLiteDatabase(app.db1OpenHelper.getWritableDatabase())
-                .setDataBaseName(app.db1OpenHelper.getDatabaseName())
-                .addTable(new TableToSync.Builder("name").build())
+                .setSQLiteDatabase(app.db5OpenHelper.getWritableDatabase())
+                .setDataBaseName(app.db5OpenHelper.getDatabaseName())
+                .addTable(tableToSync)
                 .setSchemaVersion(2)
                 .build();
     }

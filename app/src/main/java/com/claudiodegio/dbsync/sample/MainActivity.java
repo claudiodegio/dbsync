@@ -15,6 +15,7 @@ import com.claudiodegio.dbsync.sample.db1.MainDb1Activity;
 import com.claudiodegio.dbsync.sample.db2.MainDb2Activity;
 import com.claudiodegio.dbsync.sample.db3.MainDb3Activity;
 import com.claudiodegio.dbsync.sample.db4.MainDb4Activity;
+import com.claudiodegio.dbsync.sample.db5.MainDb5Activity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,5 +90,10 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.btDb4)
     public void goToDB4(){
         startActivity(new Intent(this, MainDb4Activity.class));
+    }
+
+    @OnClick(R.id.btDb5)
+    public void goToDB5(){
+        startActivity(new Intent(this, MainDb5Activity.class));
     }
 }

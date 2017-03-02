@@ -39,6 +39,12 @@
             android:layout_height="wrap_content" />
 
         <Button
+            android:id="@+id/btDb5"
+            android:text="DB 5 (1 TABLE WITH MATCH RULE)"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
             android:text="TO GDRIVE"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

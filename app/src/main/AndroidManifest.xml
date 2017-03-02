@@ -110,6 +110,17 @@
             android:theme="@style/AppTheme">
         </activity>
 
+        <activity
+            android:name=".db5.MainDb5Activity"
+            android:label="DB5"
+            android:theme="@style/AppTheme">
+        </activity>
+
+        <activity
+            android:name=".db5.InsertNameActivity"
+            android:label="DB5 - I. NAME"
+            android:theme="@style/AppTheme">
+        </activity>
 
         <activity
             android:name=".TestGDriveActivity"
