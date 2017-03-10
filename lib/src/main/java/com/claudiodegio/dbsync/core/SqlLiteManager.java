@@ -498,7 +498,7 @@ public class SqlLiteManager {
             sql = "SELECT " + sqlSelection + " FROM " + table.getName() + " a " + sqlJoin;
 
             if (!TextUtils.isEmpty(table.getFilter())) {
-                sql += "WHERE " + table.getFilter();
+                sql += " WHERE " + table.getFilter();
             }
 
             Log.d(TAG, "Write sql:" + sql);
