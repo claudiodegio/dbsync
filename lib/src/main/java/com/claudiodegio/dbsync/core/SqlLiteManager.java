@@ -483,7 +483,7 @@ public class SqlLiteManager {
             alias = "a" + aliasCount;
 
             // JOIN
-            sqlJoin += "LEFT JOIN " + refTable.getName()+ " " + alias;
+            sqlJoin += " LEFT JOIN " + refTable.getName()+ " " + alias;
             sqlJoin += " ON a." + joinTable.getJoinColumn() + " = " + alias + "." + refTable.getIdColumn();
 
             // Selection
