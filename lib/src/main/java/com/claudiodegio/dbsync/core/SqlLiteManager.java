@@ -375,7 +375,7 @@ public class SqlLiteManager {
     }
 
     private void populateUUID(TableToSync table) {
-        String selection;
+        String sql;
         Cursor cur = null;
         String uuid;
         int id;
@@ -383,14 +383,14 @@ public class SqlLiteManager {
         ContentValues contentValuesUpdate;
         Log.i(TAG, "start populateUUID for table:" + table.getName() + " idColumn:" + table.getIdColumn() + " CloudIdColumn:" + table.getCloudIdColumn());
 
-        selection = "( " + table.getCloudIdColumn() + " IS NULL OR " + table.getCloudIdColumn() + " = \"\")";
+        sql = "SELECT " + table.getIdColumn() + " FROM " + table.getName() + " a WHERE ( " + table.getCloudIdColumn() + " IS NULL OR " + table.getCloudIdColumn() + " = \"\")";
 
         if (!TextUtils.isEmpty(table.getFilter())) {
-            selection += " AND " + table.getFilter();
+            sql += " AND " + table.getFilter();
         }
 
         try {
-            cur = mDB.query(table.getName(), new String[]{table.getIdColumn()}, selection, null, null, null, null);
+            cur = mDB.rawQuery(sql, null);
 
             rowCount = 0;
             contentValuesUpdate = new ContentValues();
