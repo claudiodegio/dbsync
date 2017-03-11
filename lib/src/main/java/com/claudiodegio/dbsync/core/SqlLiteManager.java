@@ -431,11 +431,13 @@ public class SqlLiteManager {
 
         Log.i(TAG, "start populateSendTime for table:" + table.getName() + " sendTable:" + table.getSendTimeColumn());
 
-        where = table.getSendTimeColumn() + " IS NULL";
-
+        where = table.getIdColumn() + " IN (SELECT a." + table.getIdColumn() + " FROM " +table.getName() +
+                " a WHERE " + table.getSendTimeColumn() + " IS NULL";
         if (!TextUtils.isEmpty(table.getFilter())) {
             where += " AND "+ table.getFilter();
         }
+
+        where += ")";
 
         contentValues = new ContentValues();
         contentValues.put(table.getSendTimeColumn(), sendTimestamp);
