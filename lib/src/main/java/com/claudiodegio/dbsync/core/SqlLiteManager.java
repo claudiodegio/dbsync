@@ -304,7 +304,7 @@ public class SqlLiteManager {
 
         whereClause = tableToSync.getIdColumn() + " = ?";
 
-        mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
+        int count = mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
     }
 
     private void insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
@@ -312,7 +312,7 @@ public class SqlLiteManager {
 
         contentValues = buildContentValues(tableToSync, record);
 
-        mDB.insert(tableToSync.getName(), null, contentValues);
+        mDB.insertOrThrow(tableToSync.getName(), null, contentValues);
     }
 
     private ContentValues buildContentValues(final TableToSync tableToSync, final Record record){
