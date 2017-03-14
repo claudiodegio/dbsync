@@ -43,6 +43,7 @@ public class DBSync {
     final private List<TableToSync> mTables;
     final private Context mCtx;
     final private String mDataBaseName;
+    final private String mLocalPrefName;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({SERVER, CLIENT})
@@ -50,13 +51,14 @@ public class DBSync {
     static final public int SERVER = 1;
     static final public int CLIENT = 2;
 
-    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
+    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, final String localPrefName, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
         this.mCtx = ctx;
         this.mCloudProvider = cloudProvider;
         this.mDB = db;
         this.mTables = tables;
         this.mDataBaseName = dataBaseName;
         this.mManager = new SqlLiteManager(mDB, dataBaseName, tables, conflictPolicy, thresholdSeconds, schemaVersion);
+        this.mLocalPrefName = localPrefName;
     }
 
     /**
@@ -232,7 +234,7 @@ public class DBSync {
     }
 
     private String buildPreferenceFileName(){
-        return "com.claudiodegio.dbsync." + mDataBaseName + ".STORAGE";
+        return "com.claudiodegio.dbsync." + mLocalPrefName + ".STORAGE";
     }
 
     /**
@@ -243,6 +245,7 @@ public class DBSync {
         private CloudProvider mCloudProvider;
         private SQLiteDatabase mDB;
         private String mDataBaseName;
+        private String mLocalPrefName;
         private List<TableToSync> mTables = new ArrayList<>();
         private Context mCtx;
         @ConflictPolicy private int mConflictPolicy = CLIENT;
@@ -288,6 +291,18 @@ public class DBSync {
             this.mDataBaseName = dataBaseName;
             return this;
         }
+
+
+        /**
+         * Set the local preference file name used to save last sync time a runtime informazione
+         * used locally if non defined use the database name
+         * @param localPrefName the db name
+         */
+        public Builder setLocalPrefName(String localPrefName) {
+            this.mLocalPrefName = localPrefName;
+            return this;
+        }
+
 
         /**
          * Set the conflict policy
@@ -347,7 +362,11 @@ public class DBSync {
                 }
             }
 
-            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mConflictPolicy, mToleranceSeconds, mSchemaVersion);
+            if (TextUtils.isEmpty(mLocalPrefName)) {
+                mLocalPrefName = mDataBaseName;
+            }
+
+            return new DBSync(mCtx, mCloudProvider, mDB, mDataBaseName, mTables, mLocalPrefName, mConflictPolicy, mToleranceSeconds, mSchemaVersion);
         }
     }
 }
