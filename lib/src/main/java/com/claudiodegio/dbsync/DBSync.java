@@ -125,12 +125,12 @@ public class DBSync {
             Log.i(TAG, "sync completed");
 
             // ALL OK
-            return new SyncResult(new SyncStatus(SyncStatus.OK), counter);
+            return new SyncResult(new SyncStatus(SyncStatus.Code.OK), counter);
         } catch (SyncException e) {
             return new SyncResult(e.getStatus());
         } catch (Exception e) {
             Log.e(TAG, "error", e);
-            return new SyncResult(new SyncStatus(SyncStatus.ERROR, e.getMessage()));
+            return new SyncResult(new SyncStatus(SyncStatus.Code.ERROR, e.getMessage()));
         } finally {
             if (tempFbFile != null && tempFbFile.exists()) {
                 Log.d(TAG, "delete db temp file:" + tempFbFile.getName());
@@ -172,7 +172,7 @@ public class DBSync {
             return tempDbFile;
         } catch (Exception e) {
             FileUtils.deleteQuietly(tempDbFile);
-            throw new SyncException(SyncStatus.ERROR_WRITING_TMP_DB, e.getMessage());
+            throw new SyncException(SyncStatus.Code.ERROR_WRITING_TMP_DB, e.getMessage());
         }
     }
 
@@ -192,7 +192,7 @@ public class DBSync {
             mManager.syncDatabase(reader, counter, lastSyncTimestamp, currentTimestamp);
         } catch (IOException e) {
             // if the sync procedure generate an IOException i convert it
-            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, e);
+            throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, e);
         } finally {
             if (reader != null) {
                 reader.close();

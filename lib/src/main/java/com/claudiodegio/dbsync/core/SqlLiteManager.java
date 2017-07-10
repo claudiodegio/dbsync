@@ -78,7 +78,7 @@ public class SqlLiteManager {
 
                         // Check schema version
                         if (dbCurrentDatabase.getSchemaVersion() > mSchemaVersion) {
-                            throw new SyncException(SyncStatus.ERROR_NEW_SCHEMA_VERSION, "Find new schema version, need to update (found:" + dbCurrentDatabase.getSchemaVersion() + ", expected:" + mSchemaVersion + ")");
+                            throw new SyncException(SyncStatus.Code.ERROR_NEW_SCHEMA_VERSION, "Find new schema version, need to update (found:" + dbCurrentDatabase.getSchemaVersion() + ", expected:" + mSchemaVersion + ")");
                         }
 
                         break;
@@ -96,7 +96,7 @@ public class SqlLiteManager {
                         });
 
                         if (currentTableToSync == null) {
-                            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find table " + tableName + " into table definition");
+                            throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find table " + tableName + " into table definition");
                         }
 
                         columns = SqlLiteUtility.readTableMetadataAsMap(mDB, dbCurrentTable.getName());
@@ -144,13 +144,13 @@ public class SqlLiteManager {
         valueSendTime = record.findField(tableToSync.getSendTimeColumn());
 
         if (valueSendTime == null) {
-            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getSendTimeColumn() + " into cloud DB record");
+            throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getSendTimeColumn() + " into cloud DB record");
         }
 
         valueCloudId = record.findField(tableToSync.getCloudIdColumn());
 
         if (valueCloudId == null) {
-            throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getCloudIdColumn() + " into cloud DB record");
+            throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find column " + tableToSync.getCloudIdColumn() + " into cloud DB record");
         }
 
         sendTime = valueSendTime.getValueLong();
@@ -245,7 +245,7 @@ public class SqlLiteManager {
 
             if (cur.getCount() > 1) {
                 cloudId = record.findField(tableToSync.getCloudIdColumn()).getValueString();
-                throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Found more match with record with cloudId: "  + cloudId + " and match rule: " + rule);
+                throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Found more match with record with cloudId: "  + cloudId + " and match rule: " + rule);
             }
 
             if (cur.getCount() == 0) {
@@ -343,7 +343,7 @@ public class SqlLiteManager {
                 });
 
                 if (joinTable == null) {
-                    throw new SyncException(SyncStatus.ERROR_SYNC_COULD_DB, "Unable to find join table for field " + fieldName + " into definition");
+                    throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find join table for field " + fieldName + " into definition");
                 }
 
 
@@ -487,7 +487,7 @@ public class SqlLiteManager {
             sqlJoin += " ON a." + joinTable.getJoinColumn() + " = " + alias + "." + refTable.getIdColumn();
 
             // Selection
-            sqlSelection += ", " + alias + "." + refTable.getCloudIdColumn() + " as " + JOIN_COLUMN_PREFIX + joinTable.getJoinColumn().toString();
+            sqlSelection += ", " + alias + "." + refTable.getCloudIdColumn() + " as " + JOIN_COLUMN_PREFIX + joinTable.getJoinColumn();
 
             listJoinColumn.add(joinTable.getJoinColumn());
 

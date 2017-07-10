@@ -108,7 +108,7 @@ public class GDriveCloudProvider implements CloudProvider {
             if (complentionStatus == CompletionEvent.STATUS_CONFLICT) {
                 return UPLOAD_CONFLICT;
             } else if (complentionStatus == CompletionEvent.STATUS_FAILURE) {
-                throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive (FAILURE of commit)");
+                throw new SyncException(SyncStatus.Code.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive (FAILURE of commit)");
             }
 
             return UPLOAD_OK;
@@ -116,7 +116,7 @@ public class GDriveCloudProvider implements CloudProvider {
             if (driveContents != null) {
                 driveContents.discard(mGoogleApiClient);
             }
-            throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive message:" + e.getMessage());
+            throw new SyncException(SyncStatus.Code.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive message:" + e.getMessage());
         }
     }
 
@@ -160,7 +160,7 @@ public class GDriveCloudProvider implements CloudProvider {
             if (mDriveContent != null) {
                 mDriveContent.discard(mGoogleApiClient);
             }
-            throw new SyncException(SyncStatus.ERROR_DOWNLOAD_CLOUD, "Error reading file from GDrive message:" + e.getMessage());
+            throw new SyncException(SyncStatus.Code.ERROR_DOWNLOAD_CLOUD, "Error reading file from GDrive message:" + e.getMessage());
         }
     }
 
@@ -171,7 +171,7 @@ public class GDriveCloudProvider implements CloudProvider {
 
     private void checkStatus(Result result) throws SyncException {
         if (!result.getStatus().isSuccess()) {
-            throw new SyncException(SyncStatus.ERROR_UPLOAD_CLOUD, result.getStatus().getStatusMessage());
+            throw new SyncException(SyncStatus.Code.ERROR_UPLOAD_CLOUD, result.getStatus().getStatusMessage());
         }
     }
 

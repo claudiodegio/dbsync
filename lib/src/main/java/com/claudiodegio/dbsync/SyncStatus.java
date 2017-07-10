@@ -12,16 +12,17 @@ import java.lang.annotation.RetentionPolicy;
 public class SyncStatus {
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({OK, ERROR_WRITING_TMP_DB, ERROR_UPLOAD_CLOUD, ERROR_GENERATE_UUID, ERROR_DOWNLOAD_CLOUD, ERROR_SYNC_COULD_DB, ERROR, ERROR_NEW_SCHEMA_VERSION})
-    public @interface Code {}
-    static final int OK = 0;
-    static final public int ERROR = 100;
-    static final public int ERROR_WRITING_TMP_DB = 101;
-    static final public int ERROR_UPLOAD_CLOUD = 102;
-    static final public int ERROR_GENERATE_UUID = 103;
-    static final public int ERROR_DOWNLOAD_CLOUD = 104;
-    static final public int ERROR_SYNC_COULD_DB = 105;
-    static final public int ERROR_NEW_SCHEMA_VERSION = 106;
+    @IntDef({Code.OK, Code.ERROR_WRITING_TMP_DB, Code.ERROR_UPLOAD_CLOUD, Code.ERROR_GENERATE_UUID, Code.ERROR_DOWNLOAD_CLOUD, Code.ERROR_SYNC_COULD_DB, Code.ERROR, Code.ERROR_NEW_SCHEMA_VERSION})
+    public @interface Code {
+        int OK = 0;
+        int ERROR = 100;
+        int ERROR_WRITING_TMP_DB = 101;
+        int ERROR_UPLOAD_CLOUD = 102;
+        int ERROR_GENERATE_UUID = 103;
+        int ERROR_DOWNLOAD_CLOUD = 104;
+        int ERROR_SYNC_COULD_DB = 105;
+        int ERROR_NEW_SCHEMA_VERSION = 106;
+    }
 
     private @Code int mStatusCode;
     private String mMessage;
@@ -31,7 +32,7 @@ public class SyncStatus {
         this.mMessage = message;
     }
 
-    public SyncStatus(int statusCode) {
+    public SyncStatus(@Code int statusCode) {
        this(statusCode, null);
     }
 
@@ -39,6 +40,7 @@ public class SyncStatus {
      * Retrun the status code
      * @return the status code
      */
+    @Code
     public int getStatusCode() {
         return mStatusCode;
     }
@@ -56,6 +58,6 @@ public class SyncStatus {
      * @return true on success otherwise false
      */
     public boolean isSuccess(){
-        return mStatusCode == OK;
+        return mStatusCode == Code.OK;
     }
 }

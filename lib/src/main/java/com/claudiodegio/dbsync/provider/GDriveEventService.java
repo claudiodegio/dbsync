@@ -16,7 +16,7 @@ public class GDriveEventService extends DriveEventService {
     final static public String BUNDLE_SUCCESS = "success";
     final static public String BUNDLE_DRIVEID = "driveId";
 
-    public static final String CUSTOM_INTENT = "com.claudiodefio.dbsync.intent.action.COMPLETE";
+    public static final String CUSTOM_INTENT = "com.claudiodegio.dbsync.intent.action.COMPLETE";
 
     @Override
     public void onCompletion(CompletionEvent event) {
