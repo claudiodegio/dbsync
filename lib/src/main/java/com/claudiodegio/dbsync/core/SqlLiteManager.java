@@ -187,7 +187,7 @@ public class SqlLiteManager {
                         || dbRecordMatch.getSendTime() == currentSyncTimestamp)
                         && sendTime > lastSyncTimestamp) {
                     // Conflict of data
-                    if (mConflictPolicy == DBSync.SERVER) {
+                    if (mConflictPolicy == DBSync.ConflictPolicy.SERVER) {
                         // perform update only if server version wins
                         Log.v(TAG, "syncRecord: update conflict record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch.getId() + " (match rule" + (indexMatchRule+1) + ")");
 

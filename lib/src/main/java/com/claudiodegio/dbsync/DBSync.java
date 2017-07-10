@@ -46,10 +46,11 @@ public class DBSync {
     final private String mLocalPrefName;
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({SERVER, CLIENT})
-    public @interface ConflictPolicy {}
-    static final public int SERVER = 1;
-    static final public int CLIENT = 2;
+    @IntDef({ConflictPolicy.SERVER, ConflictPolicy.CLIENT})
+    public @interface ConflictPolicy {
+        int SERVER = 1;
+        int CLIENT = 2;
+    }
 
     private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, final String localPrefName, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
         this.mCtx = ctx;
@@ -248,8 +249,8 @@ public class DBSync {
         private String mLocalPrefName;
         private List<TableToSync> mTables = new ArrayList<>();
         private Context mCtx;
-        @ConflictPolicy private int mConflictPolicy = CLIENT;
-        private int mToleranceSeconds = 300;
+        @ConflictPolicy private int mConflictPolicy = ConflictPolicy.CLIENT;
+        private int mToleranceSeconds = 60;
         private int mSchemaVersion = 1;
 
         public Builder(final Context ctx) {
