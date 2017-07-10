@@ -158,7 +158,7 @@ public class SqlLiteManager {
         // Create table counter if non defined
         tableCounter = counter.findOrCreateTableCounter(tableToSync.getName());
 
-        // Check if record it new or not
+        // Check if record is new or not
         if (sendTime > lastSyncTimestamp - mThresholdSeconds * 1000) {
             // New Record, find match rule to detect is to insert or update
             for (indexMatchRule = 0 ; indexMatchRule < tableToSync.getMatchRules().size(); ++indexMatchRule) {
@@ -195,7 +195,7 @@ public class SqlLiteManager {
                         tableCounter.incrementRecordUpdated();
                         counter.incrementRecordUpdated();
                     } else {
-                        Log.v(TAG, "syncRecord: update ignored for conflict policy win server version");
+                        Log.v(TAG, "syncRecord: update ignored for conflict policy win client version");
                     }
                 } else {
                     // No conflict perform update
@@ -538,16 +538,16 @@ public class SqlLiteManager {
     }
 
 
-    class DBRecordMatch {
+    private class DBRecordMatch {
         private Long mId;
         private Long mSendTime;
 
-        public DBRecordMatch(Long id,  Long sendTime) {
+        DBRecordMatch(Long id,  Long sendTime) {
             this.mId = id;
             this.mSendTime = sendTime;
         }
 
-        public Long getSendTime() {
+        Long getSendTime() {
             return mSendTime;
         }
 

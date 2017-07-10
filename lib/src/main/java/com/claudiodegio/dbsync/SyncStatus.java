@@ -12,7 +12,7 @@ import java.lang.annotation.RetentionPolicy;
 public class SyncStatus {
 
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({Code.OK, Code.ERROR_WRITING_TMP_DB, Code.ERROR_UPLOAD_CLOUD, Code.ERROR_GENERATE_UUID, Code.ERROR_DOWNLOAD_CLOUD, Code.ERROR_SYNC_COULD_DB, Code.ERROR, Code.ERROR_NEW_SCHEMA_VERSION})
+    @IntDef({Code.OK, Code.ERROR_WRITING_TMP_DB, Code.ERROR_UPLOAD_CLOUD, Code.ERROR_GENERATE_UUID, Code.ERROR_DOWNLOAD_CLOUD, Code.ERROR_SYNC_COULD_DB, Code.ERROR, Code.ERROR_NEW_SCHEMA_VERSION,Code.ERROR_NO_CONNECTION })
     public @interface Code {
         int OK = 0;
         int ERROR = 100;
@@ -22,6 +22,7 @@ public class SyncStatus {
         int ERROR_DOWNLOAD_CLOUD = 104;
         int ERROR_SYNC_COULD_DB = 105;
         int ERROR_NEW_SCHEMA_VERSION = 106;
+        int ERROR_NO_CONNECTION = 107;
     }
 
     private @Code int mStatusCode;

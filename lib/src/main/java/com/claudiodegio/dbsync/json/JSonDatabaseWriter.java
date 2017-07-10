@@ -67,14 +67,6 @@ public class JSonDatabaseWriter implements DatabaseWriter {
             converter = JSonConverterFactory.buildConverter(metadata);
 
             converter.columnValueToJson(mGen, value);
-            /*switch (value.getMetadata().getType()) {
-                case ValueMetadata.TYPE_LONG:
-                    mGen.writeNumberField(fieldName, value.getValueLong());
-                    break;
-                case ValueMetadata.TYPE_STRING:
-                    mGen.writeStringField(fieldName, value.getValueString());
-                    break;
-            }*/
         }
         mGen.writeEndObject();
     }
