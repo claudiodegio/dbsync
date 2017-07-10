@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.claudiodegio.dbsync.core.JoinTable;
 import com.claudiodegio.dbsync.core.Table;
+import com.claudiodegio.dbsync.core.Utility;
 import com.claudiodegio.dbsync.exception.SyncBuildException;
 import com.claudiodegio.dbsync.provider.CloudProvider;
 import com.claudiodegio.dbsync.core.DatabaseCounter;
@@ -82,11 +83,15 @@ public class DBSync {
             currentTimestamp = System.currentTimeMillis();
             counter = new DatabaseCounter();
 
+
             attempt = 0;
             while (true) {
                 attempt++;
                 Log.i(TAG, "start sync try " + attempt);
                 // Download the file from cloud
+                if (!Utility.isConnectionUp(mCtx)) {
+                    throw new SyncException(SyncStatus.Code.ERROR_NO_CONNECTION, "Error no connection");
+                }
                 inputStream = mCloudProvider.downloadFile();
 
                 // Sync the database
@@ -101,6 +106,10 @@ public class DBSync {
 
                 // Write the database file
                 tempFbFile = writeDateBaseFile();
+
+                if (!Utility.isConnectionUp(mCtx)) {
+                    throw new SyncException(SyncStatus.Code.ERROR_NO_CONNECTION, "Error no connection");
+                }
 
                 // Upload file to cloud
                 uploadStatus = mCloudProvider.uploadFile(tempFbFile);
