@@ -31,7 +31,7 @@ public class MainDb2Activity extends BaseMainDbActivity  {
 
     @Override
     public void onPostSelectFile() {
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+        /*CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setGoogleApiClient(mGoogleApiClient)
                 .build();
@@ -43,7 +43,7 @@ public class MainDb2Activity extends BaseMainDbActivity  {
                 .addTable(new TableToSync.Builder("name").build())
                 .addTable(new TableToSync.Builder("category").build())
                 .setSchemaVersion(1)
-                .build();
+                .build();*/
     }
 
 

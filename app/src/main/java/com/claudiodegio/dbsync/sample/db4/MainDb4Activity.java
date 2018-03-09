@@ -32,7 +32,7 @@ public class MainDb4Activity extends BaseMainDbActivity  {
     public void onPostSelectFile() {
 
 
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+       /* CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setGoogleApiClient(mGoogleApiClient)
                 .build();
@@ -52,7 +52,7 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .addTable(tableCategory)
                 .addTable(tableArticle)
                 .setSchemaVersion(1)
-                .build();
+                .build();*/
 
 
     }

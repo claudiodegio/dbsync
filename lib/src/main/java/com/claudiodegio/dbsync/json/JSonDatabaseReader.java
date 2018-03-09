@@ -20,8 +20,6 @@ import java.util.Map;
 
 public class JSonDatabaseReader implements DatabaseReader {
 
-
-    // TODO metterlo in qualche classe
     final static public int START_DB = 1;
     final static public int START_TABLE = 2;
     final static public int RECORD = 3;
