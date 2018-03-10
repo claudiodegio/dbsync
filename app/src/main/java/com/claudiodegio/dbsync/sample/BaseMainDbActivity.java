@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Button;
@@ -20,31 +19,24 @@ import com.claudiodegio.dbsync.SyncResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.CreateFileActivityOptions;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveClient;
+import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.DriveResource;
 import com.google.android.gms.drive.DriveResourceClient;
-import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.OpenFileActivityBuilder;
 import com.google.android.gms.drive.OpenFileActivityOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.util.Date;
-import java.text.DateFormat;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import im.dino.dbinspector.activities.DbInspectorActivity;
 
-public abstract class BaseMainDbActivity extends BaseActivity  {
+public abstract class BaseMainDbActivity extends BaseActivity {
 
     private final static String TAG = "BaseMainDbActivity";
 
@@ -127,7 +119,9 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
         startActivityForResult(mGoogleSignInClient.getSignInIntent(), REQUEST_CODE_SIGN_IN);
     }
 
-    /** Build a Google SignIn client. */
+    /**
+     * Build a Google SignIn client.
+     */
     private GoogleSignInClient buildGoogleSignInClient() {
         GoogleSignInOptions signInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -149,7 +143,7 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Log.d(TAG, "onActivityResult requestCode:" + requestCode + " resultCode:" +resultCode);
+        Log.d(TAG, "onActivityResult requestCode:" + requestCode + " resultCode:" + resultCode);
 
         switch (requestCode) {
             case REQUEST_CODE_SIGN_IN:
@@ -197,8 +191,8 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
         try {
             OpenFileActivityOptions openFileActivityOptions =
                     new OpenFileActivityOptions.Builder()
-                    .setActivityTitle("Select file for sync")
-                    .build();
+                            .setActivityTitle("Select file for sync")
+                            .build();
 
             mDriveClient.newOpenFileActivityIntentSender(openFileActivityOptions)
                     .addOnSuccessListener(this, intentSender -> {
@@ -218,7 +212,12 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
 
     @OnClick(R.id.btCreateFileForSync)
     public void actionCreateFileForSync() {
-        try {
+
+
+        Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
+
+
+        createContentsTask.continueWithTask(task -> {
             MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
                     .setTitle("Create file for sync")
                     .setMimeType("text/plain")
@@ -228,35 +227,34 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
             CreateFileActivityOptions createOptions =
                     new CreateFileActivityOptions.Builder()
                             .setInitialMetadata(changeSet)
+                            .setInitialDriveContents(task.getResult())
                             .build();
 
-            mDriveClient.newCreateFileActivityIntentSender(createOptions)
-                    .addOnSuccessListener(this, intentSender -> {
-                        try {
-                        startIntentSenderForResult(
-                                intentSender, REQUEST_CODE_NEW_FILE, null, 0, 0, 0);
-                    } catch (IntentSender.SendIntentException e) {
-                        Toast.makeText(BaseMainDbActivity.this, "Unable to create file", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
-                    });
+            return mDriveClient.newCreateFileActivityIntentSender(createOptions);
+        }).addOnSuccessListener(this, intentSender -> {
+            try {
+                startIntentSenderForResult(
+                        intentSender, REQUEST_CODE_NEW_FILE, null, 0, 0, 0);
+            } catch (IntentSender.SendIntentException e) {
+                Toast.makeText(BaseMainDbActivity.this, "Unable to create file", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
 
-        } catch (Exception e) {
-            Log.w(TAG, "Unable to send intent", e);
-        }
     }
-    protected void updateLastSyncTimeStamp(){
+
+    protected void updateLastSyncTimeStamp() {
         if (dbSync != null) {
             long lastSyncStatus = dbSync.getLastSyncTimestamp();
 
             Date date = new Date(lastSyncStatus);
 
-            mTvLastSyncTimestamp.setText("Timestamp: " + lastSyncStatus + " - " +Utility.formatDateTimeNoTimeZone(date));
+            mTvLastSyncTimestamp.setText("Timestamp: " + lastSyncStatus + " - " + Utility.formatDateTimeNoTimeZone(date));
         }
     }
 
     @OnClick(R.id.btResetLastSyncTimestamp)
-    public void resetLastSyncTimestamp(){
+    public void resetLastSyncTimestamp() {
 
         if (dbSync != null) {
             dbSync.resetLastSyncTimestamp();
@@ -265,12 +263,12 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
     }
 
     @OnClick(R.id.btToDbManager)
-    public void goToDBManager(){
+    public void goToDBManager() {
         startActivity(new Intent(this, DbInspectorActivity.class));
     }
 
     @OnClick(R.id.btSync)
-    public void btSync(){
+    public void btSync() {
         mTvStatus.setText("In Progress...");
         new SyncTask().execute();
     }
@@ -280,7 +278,7 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
     public abstract void onPostSelectFile();
 
 
-    private void readMetadata(){
+    private void readMetadata() {
 
 
         mDriveResourceClient.getMetadata(mDriveId.asDriveFile())
@@ -291,7 +289,7 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
 
         @Override
         public void run() {
-            mTvCurrentTime.setText("CurrentTime: " +Utility.formatDateTimeNoTimeZone(new Date()));
+            mTvCurrentTime.setText("CurrentTime: " + Utility.formatDateTimeNoTimeZone(new Date()));
 
             mMainHandler.postDelayed(this, 500);
         }
@@ -301,14 +299,14 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
 
         @Override
         protected SyncResult doInBackground(Void... params) {
-            return  dbSync.sync();
+            return dbSync.sync();
         }
 
         @Override
         protected void onPostExecute(SyncResult result) {
 
             if (result.getStatus().isSuccess()) {
-                mTvStatus.setText("OK - Insert: " +  result.getCounter().getRecordInserted() + " - Update: " +  result.getCounter().getRecordUpdated());
+                mTvStatus.setText("OK - Insert: " + result.getCounter().getRecordInserted() + " - Update: " + result.getCounter().getRecordUpdated());
                 updateLastSyncTimeStamp();
             } else {
                 mTvStatus.setText("Fail: " + result.getStatus().getStatusCode() + "\n" + result.getStatus().getStatusMessage());
