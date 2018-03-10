@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 
 /**
  * Cloud provider implementation for Driver
@@ -84,13 +85,14 @@ public class GDriveCloudProvider implements CloudProvider {
             }
 
             // Writing file
-            taskDriveContent = mDriveResourceClient.openFile(driveFile,DriveFile.MODE_WRITE_ONLY);
+            taskDriveContent = mDriveResourceClient.reopenContentsForWrite(mDriveContent);
             mDriveContent = Tasks.await(taskDriveContent);
 
             outputStream  = mDriveContent.getOutputStream();
 
             // Copio il file
             FileUtils.copyFile(tempFile, outputStream);
+            outputStream.close();
             Log.i(TAG, "try to commit file copy done");
 
             // Commit del file
@@ -99,7 +101,11 @@ public class GDriveCloudProvider implements CloudProvider {
                     .setConflictStrategy(ExecutionOptions.CONFLICT_STRATEGY_KEEP_REMOTE)
                     .build();
 
-            mDriveResourceClient.commitContents(mDriveContent, null, executionOptions);
+            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                    .setLastViewedByMeDate(new Date())
+                    .build();
+
+            mDriveResourceClient.commitContents(mDriveContent, changeSet, executionOptions);
 
             Log.i(TAG, "file committed - wait for complention");
 
@@ -120,6 +126,7 @@ public class GDriveCloudProvider implements CloudProvider {
                 mDriveResourceClient.discardContents(mDriveContent);
             }
             Log.e(TAG, "uploadFile: " + e.getMessage());
+            e.printStackTrace();
             throw new SyncException(SyncStatus.Code.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive message:" + e.getMessage());
         }
     }
@@ -131,7 +138,6 @@ public class GDriveCloudProvider implements CloudProvider {
         InputStream inputStream;
         Task<Metadata> taskMetadata;
         Task<DriveContents> taskDriveContent;
-
 
         Log.i(TAG, "start download of DB file");
 
@@ -161,6 +167,7 @@ public class GDriveCloudProvider implements CloudProvider {
             if (mDriveContent != null) {
                 mDriveResourceClient.discardContents(mDriveContent);
             }
+
             Log.e(TAG, "downloadFile: " + e.getMessage());
 
             throw new SyncException(SyncStatus.Code.ERROR_DOWNLOAD_CLOUD, "Error reading file from GDrive message:" + e.getMessage());

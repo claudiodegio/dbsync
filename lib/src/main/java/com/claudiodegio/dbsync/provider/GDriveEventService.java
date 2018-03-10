@@ -19,6 +19,16 @@ public class GDriveEventService extends DriveEventService {
     public static final String CUSTOM_INTENT = "com.claudiodegio.dbsync.intent.action.COMPLETE";
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+    }
+
+    @Override
+    public synchronized void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
     public void onCompletion(CompletionEvent event) {
         Log.d(TAG, "Action completed with status: " + event.getStatus());
 

@@ -219,8 +219,8 @@ public abstract class BaseMainDbActivity extends BaseActivity {
 
         createContentsTask.continueWithTask(task -> {
             MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                    .setTitle("Create file for sync")
-                    .setMimeType("text/plain")
+                    .setTitle("File 1")
+                    .setMimeType("application/json")
                     .setStarred(true)
                     .build();
 

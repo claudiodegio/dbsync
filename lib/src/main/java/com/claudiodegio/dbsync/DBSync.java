@@ -98,6 +98,7 @@ public class DBSync {
                 if (inputStream != null) {
                     syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
                 }
+
                 // populateUUID
                 mManager.populateUUID();
 
