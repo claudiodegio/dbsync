@@ -169,8 +169,8 @@ public class SqlLiteManager {
                 // Insert no more check no conflict
                 Log.v(TAG, "syncRecord: insert new record with cloudId:" + valueCloudId.getValueString());
 
-                insertRecordIntoDatabase(tableToSync, record);
-                tableRecordChanged.incrementRecordInserted();
+                long id = insertRecordIntoDatabase(tableToSync, record);
+                tableRecordChanged.addInseredId(id);
             } else {
                 // Update
 
@@ -184,7 +184,7 @@ public class SqlLiteManager {
                         Log.v(TAG, "syncRecord: update conflict record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch.getId() + " (match rule" + (indexMatchRule+1) + ")");
 
                         updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
-                        tableRecordChanged.incrementRecordUpdated();
+                        tableRecordChanged.addUpdatedId(dbRecordMatch.getId());
                     } else {
                         Log.v(TAG, "syncRecord: update ignored for conflict policy win client version");
                     }
@@ -193,7 +193,7 @@ public class SqlLiteManager {
                     Log.v(TAG, "syncRecord: update new record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch + " (match rule" + (indexMatchRule+1) + ")");
 
                     updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
-                    tableRecordChanged.incrementRecordUpdated();
+                    tableRecordChanged.addUpdatedId(dbRecordMatch.getId());
                 }
             }
         } else {
@@ -294,15 +294,15 @@ public class SqlLiteManager {
 
         whereClause = tableToSync.getIdColumn() + " = ?";
 
-        int count = mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
+        mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
     }
 
-    private void insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
+    private long insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
         ContentValues contentValues;
 
         contentValues = buildContentValues(tableToSync, record);
 
-        mDB.insertOrThrow(tableToSync.getName(), null, contentValues);
+       return mDB.insertOrThrow(tableToSync.getName(), null, contentValues);
     }
 
     private ContentValues buildContentValues(final TableToSync tableToSync, final Record record){

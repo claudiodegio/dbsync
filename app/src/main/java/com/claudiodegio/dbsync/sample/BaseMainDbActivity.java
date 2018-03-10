@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 import com.claudiodegio.dbsync.DBSync;
 import com.claudiodegio.dbsync.SyncResult;
+import com.claudiodegio.dbsync.core.RecordChanged;
+import com.claudiodegio.dbsync.core.RecordSyncResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -29,7 +31,11 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.OpenFileActivityOptions;
 import com.google.android.gms.tasks.Task;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -306,7 +312,24 @@ public abstract class BaseMainDbActivity extends BaseActivity {
         protected void onPostExecute(SyncResult result) {
 
             if (result.getStatus().isSuccess()) {
-                mTvStatus.setText("OK - Insert: " + result.getResult().getRecordInserted() + " - Update: " + result.getResult().getRecordUpdated());
+                StringBuilder sb = new StringBuilder();
+                RecordSyncResult syncResult = result.getResult();
+
+                sb.append("OK - Insert: ");
+                sb.append(syncResult.getRecordInserted());
+                sb.append(" - Update: ");
+                sb.append(syncResult.getRecordUpdated());
+
+                for (Map.Entry<String, RecordChanged> entry : syncResult.getTableSynced().entrySet()) {
+                    sb.append("\nTable: ");
+                    sb.append(entry.getKey());
+
+                    sb.append(" I:");
+                    sb.append(Arrays.toString(entry.getValue().getInseredId().toArray()));
+                    sb.append(" U:");
+                    sb.append(Arrays.toString(entry.getValue().getUpdatedId().toArray()));
+                }
+                mTvStatus.setText(sb.toString());
                 updateLastSyncTimeStamp();
             } else {
                 mTvStatus.setText("Fail: " + result.getStatus().getStatusCode() + "\n" + result.getStatus().getStatusMessage());

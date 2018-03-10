@@ -1,9 +1,12 @@
 package com.claudiodegio.dbsync.core;
 
 
+import org.apache.commons.collections4.IterableUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class RecordSyncResult {
 
@@ -18,8 +21,8 @@ public class RecordSyncResult {
         return mRecordChanged.size();
     }
 
-    public Set<String> getTableSynced(){
-        return mRecordChanged.keySet();
+    public Map<String, RecordChanged> getTableSynced(){
+        return mRecordChanged;
     }
 
     RecordChanged findOrCreateTableCounter(final String tableName) {
@@ -32,13 +35,23 @@ public class RecordSyncResult {
     }
 
     public int getRecordInserted() {
-        // TODO da implementare
-        return 0;
+        int total = 0;
+
+        for (RecordChanged recordChanged : mRecordChanged.values()) {
+            total += recordChanged.getRecordInserted();
+        }
+
+        return total;
     }
 
     public int getRecordUpdated() {
-        // TODO da implementare
-        return 0;
+        int total = 0;
+
+        for (RecordChanged recordChanged : mRecordChanged.values()) {
+            total += recordChanged.getRecordUpdated();
+        }
+
+        return total;
     }
 
 }

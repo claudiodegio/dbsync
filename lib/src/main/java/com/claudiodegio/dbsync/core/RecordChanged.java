@@ -34,18 +34,11 @@ public class RecordChanged {
     }
 
     public int getRecordInserted() {
-        return mRecordInserted;
+        return mInseredId.size();
     }
 
     public int getRecordUpdated() {
-        return mRecordUpdated;
+        return mUpdatedId.size();
     }
 
-    void incrementRecordUpdated(){
-        this.mRecordUpdated += 1;
-    }
-
-    void incrementRecordInserted(){
-        this.mRecordInserted += 1;
-    }
 }
