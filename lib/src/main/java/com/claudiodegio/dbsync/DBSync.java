@@ -126,7 +126,6 @@ public class DBSync {
                 }
                 Log.i(TAG, "conflict retry into sync try in 100 ms");
                 Thread.sleep(100);
-                break;
             }
 
             // Save Time
