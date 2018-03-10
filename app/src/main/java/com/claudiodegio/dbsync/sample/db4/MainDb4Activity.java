@@ -31,10 +31,9 @@ public class MainDb4Activity extends BaseMainDbActivity  {
     @Override
     public void onPostSelectFile() {
 
-
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
-                .setGoogleApiClient(mGoogleApiClient)
+                .setDriveResourceClient(mDriveResourceClient)
                 .build();
 
 

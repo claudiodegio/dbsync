@@ -32,7 +32,6 @@ public class SqlLiteManager {
 
     private final static String TAG = "SqlLiteManager";
 
-
     private final static String JOIN_COLUMN_PREFIX = "FK_CLOUD_";
 
     final private SQLiteDatabase mDB;
@@ -54,7 +53,7 @@ public class SqlLiteManager {
     }
 
 
-    public void syncDatabase(final DatabaseReader reader, DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp) throws IOException {
+    public void syncDatabase(final DatabaseReader reader, RecordSyncResult result, long lastSyncTimestamp, long currentSyncTimestamp) throws IOException {
         Database dbCurrentDatabase;
         Table dbCurrentTable;
         Record dbCurrentRecord;
@@ -71,7 +70,7 @@ public class SqlLiteManager {
             // Open the TX
             mDB.beginTransaction();
 
-            while ((elementType = reader.nextElement()) != JSonDatabaseReader.END) {
+            while ((elementType = reader.nextElement()) != JSonDatabaseReader.END)
                 switch (elementType) {
                     case JSonDatabaseReader.START_DB:
                         dbCurrentDatabase = reader.readDatabase();
@@ -88,12 +87,7 @@ public class SqlLiteManager {
 
                         // Find the table to sync definition and rules
                         final String tableName = dbCurrentTable.getName();
-                        currentTableToSync = IterableUtils.find(mTableToSync, new Predicate<TableToSync>() {
-                            @Override
-                            public boolean evaluate(TableToSync object) {
-                                return object.getName().equals(tableName);
-                            }
-                        });
+                        currentTableToSync = IterableUtils.find(mTableToSync, object -> object.getName().equals(tableName));
 
                         if (currentTableToSync == null) {
                             throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find table " + tableName + " into table definition");
@@ -113,11 +107,10 @@ public class SqlLiteManager {
                         dbCurrentRecord = reader.readRecord(columns);
                         // Found record sync single record
                         if (!dbCurrentRecord.isEmpty()) {
-                            syncRecord(currentTableToSync, dbCurrentRecord, counter, lastSyncTimestamp, currentSyncTimestamp);
+                            syncRecord(currentTableToSync, dbCurrentRecord, result, lastSyncTimestamp, currentSyncTimestamp);
                         }
                         break;
                 }
-            }
             // Commit the TX
             mDB.setTransactionSuccessful();
         } catch (Exception e) {
@@ -126,17 +119,17 @@ public class SqlLiteManager {
             mDB.endTransaction();
         }
 
-        Log.i(TAG, "end syncDatabase tables: " + counter.getTableSyncedCount() + " recUpdated:" + counter.getRecordUpdated() + " recInserted:" + counter.getRecordInserted());
+        Log.i(TAG, "end syncDatabase tables: " + result.getTableSyncedCount() + " recUpdated:" + result.getRecordUpdated() + " recInserted:" + result.getRecordInserted());
     }
 
-    private void syncRecord(final TableToSync tableToSync, final Record record, final DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp){
+    private void syncRecord(final TableToSync tableToSync, final Record record, final RecordSyncResult result, long lastSyncTimestamp, long currentSyncTimestamp){
 
         Value valueSendTime;
         Value valueCloudId;
 
         long sendTime;
         DBRecordMatch dbRecordMatch = null;
-        RecordCounter tableCounter;
+        RecordChanged tableRecordChanged;
         int indexMatchRule;
 
         Log.v(TAG, "syncRecord called: record = " + record + ", tableName = [" + tableToSync.getName() + "], lastSyncTimestamp = [" + lastSyncTimestamp + "]");
@@ -156,7 +149,7 @@ public class SqlLiteManager {
         sendTime = valueSendTime.getValueLong();
 
         // Create table counter if non defined
-        tableCounter = counter.findOrCreateTableCounter(tableToSync.getName());
+        tableRecordChanged = result.findOrCreateTableCounter(tableToSync.getName());
 
         // Check if record is new or not
         if (sendTime > lastSyncTimestamp - mThresholdSeconds * 1000) {
@@ -176,9 +169,8 @@ public class SqlLiteManager {
                 // Insert no more check no conflict
                 Log.v(TAG, "syncRecord: insert new record with cloudId:" + valueCloudId.getValueString());
 
-                insertRecordIntoDatabase(tableToSync, record);
-                tableCounter.incrementRecordInserted();
-                counter.incrementRecordInserted();
+                long id = insertRecordIntoDatabase(tableToSync, record);
+                tableRecordChanged.addInseredId(id);
             } else {
                 // Update
 
@@ -192,8 +184,7 @@ public class SqlLiteManager {
                         Log.v(TAG, "syncRecord: update conflict record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch.getId() + " (match rule" + (indexMatchRule+1) + ")");
 
                         updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
-                        tableCounter.incrementRecordUpdated();
-                        counter.incrementRecordUpdated();
+                        tableRecordChanged.addUpdatedId(dbRecordMatch.getId());
                     } else {
                         Log.v(TAG, "syncRecord: update ignored for conflict policy win client version");
                     }
@@ -202,8 +193,7 @@ public class SqlLiteManager {
                     Log.v(TAG, "syncRecord: update new record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch + " (match rule" + (indexMatchRule+1) + ")");
 
                     updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
-                    tableCounter.incrementRecordUpdated();
-                    counter.incrementRecordUpdated();
+                    tableRecordChanged.addUpdatedId(dbRecordMatch.getId());
                 }
             }
         } else {
@@ -304,15 +294,15 @@ public class SqlLiteManager {
 
         whereClause = tableToSync.getIdColumn() + " = ?";
 
-        int count = mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
+        mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
     }
 
-    private void insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
+    private long insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
         ContentValues contentValues;
 
         contentValues = buildContentValues(tableToSync, record);
 
-        mDB.insertOrThrow(tableToSync.getName(), null, contentValues);
+       return mDB.insertOrThrow(tableToSync.getName(), null, contentValues);
     }
 
     private ContentValues buildContentValues(final TableToSync tableToSync, final Record record){
@@ -335,12 +325,7 @@ public class SqlLiteManager {
             // Found join columns
             if (fieldName.startsWith(JOIN_COLUMN_PREFIX)) {
 
-                joinTable = IterableUtils.find(tableToSync.getJoinTable(), new Predicate<JoinTable>() {
-                    @Override
-                    public boolean evaluate(JoinTable object) {
-                        return fieldName.toUpperCase().endsWith(object.getJoinColumn());
-                    }
-                });
+                joinTable = IterableUtils.find(tableToSync.getJoinTable(), object -> fieldName.toUpperCase().endsWith(object.getJoinColumn()));
 
                 if (joinTable == null) {
                     throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find join table for field " + fieldName + " into definition");

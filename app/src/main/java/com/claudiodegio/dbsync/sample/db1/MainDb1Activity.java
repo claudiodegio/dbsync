@@ -59,7 +59,7 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
         Log.d(TAG, "onPostSelectFile");
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
-                .setGoogleApiClient(mGoogleApiClient)
+                .setDriveResourceClient(mDriveResourceClient)
                 .build();
 
         dbSync = new DBSync.Builder(this.getBaseContext())
