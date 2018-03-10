@@ -9,11 +9,10 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.claudiodegio.dbsync.core.JoinTable;
-import com.claudiodegio.dbsync.core.Table;
+import com.claudiodegio.dbsync.core.RecordSyncResult;
 import com.claudiodegio.dbsync.core.Utility;
 import com.claudiodegio.dbsync.exception.SyncBuildException;
 import com.claudiodegio.dbsync.provider.CloudProvider;
-import com.claudiodegio.dbsync.core.DatabaseCounter;
 import com.claudiodegio.dbsync.core.DatabaseWriter;
 import com.claudiodegio.dbsync.exception.SyncException;
 import com.claudiodegio.dbsync.json.JSonDatabaseReader;
@@ -70,7 +69,7 @@ public class DBSync {
     public SyncResult sync() {
         File tempFbFile = null;
         InputStream inputStream = null;
-        DatabaseCounter counter;
+        RecordSyncResult result;
         long lastSyncTimestamp;
         long currentTimestamp;
         int uploadStatus;
@@ -81,8 +80,7 @@ public class DBSync {
             lastSyncTimestamp = getLastSyncTimestamp();
             // Generate the new sync timestamp
             currentTimestamp = System.currentTimeMillis();
-            counter = new DatabaseCounter();
-
+            result = new RecordSyncResult();
 
             attempt = 0;
             while (true) {
@@ -96,7 +94,7 @@ public class DBSync {
 
                 // Sync the database
                 if (inputStream != null) {
-                    syncDatabase(inputStream, counter, lastSyncTimestamp, currentTimestamp);
+                    syncDatabase(inputStream, result, lastSyncTimestamp, currentTimestamp);
                 }
 
                 // populateUUID
@@ -134,7 +132,7 @@ public class DBSync {
             Log.i(TAG, "sync completed");
 
             // ALL OK
-            return new SyncResult(new SyncStatus(SyncStatus.Code.OK), counter);
+            return new SyncResult(new SyncStatus(SyncStatus.Code.OK), result);
         } catch (SyncException e) {
             return new SyncResult(e.getStatus());
         } catch (Exception e) {
@@ -190,7 +188,7 @@ public class DBSync {
      * @param inputStream
      * @param lastSyncTimestamp
      */
-    private void syncDatabase(final InputStream inputStream, DatabaseCounter counter, long lastSyncTimestamp, long currentTimestamp) {
+    private void syncDatabase(final InputStream inputStream, RecordSyncResult result, long lastSyncTimestamp, long currentTimestamp) {
         JSonDatabaseReader reader = null;
 
         try {
@@ -198,7 +196,7 @@ public class DBSync {
             reader = new JSonDatabaseReader(inputStream);
 
             // Start sync procedure with a the last timestamp
-            mManager.syncDatabase(reader, counter, lastSyncTimestamp, currentTimestamp);
+            mManager.syncDatabase(reader, result, lastSyncTimestamp, currentTimestamp);
         } catch (IOException e) {
             // if the sync procedure generate an IOException i convert it
             throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, e);

@@ -53,7 +53,7 @@ public class SqlLiteManager {
     }
 
 
-    public void syncDatabase(final DatabaseReader reader, DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp) throws IOException {
+    public void syncDatabase(final DatabaseReader reader, RecordSyncResult result, long lastSyncTimestamp, long currentSyncTimestamp) throws IOException {
         Database dbCurrentDatabase;
         Table dbCurrentTable;
         Record dbCurrentRecord;
@@ -107,7 +107,7 @@ public class SqlLiteManager {
                         dbCurrentRecord = reader.readRecord(columns);
                         // Found record sync single record
                         if (!dbCurrentRecord.isEmpty()) {
-                            syncRecord(currentTableToSync, dbCurrentRecord, counter, lastSyncTimestamp, currentSyncTimestamp);
+                            syncRecord(currentTableToSync, dbCurrentRecord, result, lastSyncTimestamp, currentSyncTimestamp);
                         }
                         break;
                 }
@@ -119,17 +119,17 @@ public class SqlLiteManager {
             mDB.endTransaction();
         }
 
-        Log.i(TAG, "end syncDatabase tables: " + counter.getTableSyncedCount() + " recUpdated:" + counter.getRecordUpdated() + " recInserted:" + counter.getRecordInserted());
+        Log.i(TAG, "end syncDatabase tables: " + result.getTableSyncedCount() + " recUpdated:" + result.getRecordUpdated() + " recInserted:" + result.getRecordInserted());
     }
 
-    private void syncRecord(final TableToSync tableToSync, final Record record, final DatabaseCounter counter, long lastSyncTimestamp, long currentSyncTimestamp){
+    private void syncRecord(final TableToSync tableToSync, final Record record, final RecordSyncResult result, long lastSyncTimestamp, long currentSyncTimestamp){
 
         Value valueSendTime;
         Value valueCloudId;
 
         long sendTime;
         DBRecordMatch dbRecordMatch = null;
-        RecordCounter tableCounter;
+        RecordChanged tableRecordChanged;
         int indexMatchRule;
 
         Log.v(TAG, "syncRecord called: record = " + record + ", tableName = [" + tableToSync.getName() + "], lastSyncTimestamp = [" + lastSyncTimestamp + "]");
@@ -149,7 +149,7 @@ public class SqlLiteManager {
         sendTime = valueSendTime.getValueLong();
 
         // Create table counter if non defined
-        tableCounter = counter.findOrCreateTableCounter(tableToSync.getName());
+        tableRecordChanged = result.findOrCreateTableCounter(tableToSync.getName());
 
         // Check if record is new or not
         if (sendTime > lastSyncTimestamp - mThresholdSeconds * 1000) {
@@ -170,8 +170,7 @@ public class SqlLiteManager {
                 Log.v(TAG, "syncRecord: insert new record with cloudId:" + valueCloudId.getValueString());
 
                 insertRecordIntoDatabase(tableToSync, record);
-                tableCounter.incrementRecordInserted();
-                counter.incrementRecordInserted();
+                tableRecordChanged.incrementRecordInserted();
             } else {
                 // Update
 
@@ -185,8 +184,7 @@ public class SqlLiteManager {
                         Log.v(TAG, "syncRecord: update conflict record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch.getId() + " (match rule" + (indexMatchRule+1) + ")");
 
                         updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
-                        tableCounter.incrementRecordUpdated();
-                        counter.incrementRecordUpdated();
+                        tableRecordChanged.incrementRecordUpdated();
                     } else {
                         Log.v(TAG, "syncRecord: update ignored for conflict policy win client version");
                     }
@@ -195,8 +193,7 @@ public class SqlLiteManager {
                     Log.v(TAG, "syncRecord: update new record with cloudId:" + valueCloudId.getValueString() + " match with id:" + dbRecordMatch + " (match rule" + (indexMatchRule+1) + ")");
 
                     updateRecordIntoDatabase(dbRecordMatch, tableToSync, record);
-                    tableCounter.incrementRecordUpdated();
-                    counter.incrementRecordUpdated();
+                    tableRecordChanged.incrementRecordUpdated();
                 }
             }
         } else {

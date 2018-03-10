@@ -306,7 +306,7 @@ public abstract class BaseMainDbActivity extends BaseActivity {
         protected void onPostExecute(SyncResult result) {
 
             if (result.getStatus().isSuccess()) {
-                mTvStatus.setText("OK - Insert: " + result.getCounter().getRecordInserted() + " - Update: " + result.getCounter().getRecordUpdated());
+                mTvStatus.setText("OK - Insert: " + result.getResult().getRecordInserted() + " - Update: " + result.getResult().getRecordUpdated());
                 updateLastSyncTimeStamp();
             } else {
                 mTvStatus.setText("Fail: " + result.getStatus().getStatusCode() + "\n" + result.getStatus().getStatusMessage());
