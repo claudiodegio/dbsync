@@ -32,7 +32,6 @@ public class SqlLiteManager {
 
     private final static String TAG = "SqlLiteManager";
 
-
     private final static String JOIN_COLUMN_PREFIX = "FK_CLOUD_";
 
     final private SQLiteDatabase mDB;
@@ -71,7 +70,7 @@ public class SqlLiteManager {
             // Open the TX
             mDB.beginTransaction();
 
-            while ((elementType = reader.nextElement()) != JSonDatabaseReader.END) {
+            while ((elementType = reader.nextElement()) != JSonDatabaseReader.END)
                 switch (elementType) {
                     case JSonDatabaseReader.START_DB:
                         dbCurrentDatabase = reader.readDatabase();
@@ -88,12 +87,7 @@ public class SqlLiteManager {
 
                         // Find the table to sync definition and rules
                         final String tableName = dbCurrentTable.getName();
-                        currentTableToSync = IterableUtils.find(mTableToSync, new Predicate<TableToSync>() {
-                            @Override
-                            public boolean evaluate(TableToSync object) {
-                                return object.getName().equals(tableName);
-                            }
-                        });
+                        currentTableToSync = IterableUtils.find(mTableToSync, object -> object.getName().equals(tableName));
 
                         if (currentTableToSync == null) {
                             throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find table " + tableName + " into table definition");
@@ -117,7 +111,6 @@ public class SqlLiteManager {
                         }
                         break;
                 }
-            }
             // Commit the TX
             mDB.setTransactionSuccessful();
         } catch (Exception e) {
@@ -335,12 +328,7 @@ public class SqlLiteManager {
             // Found join columns
             if (fieldName.startsWith(JOIN_COLUMN_PREFIX)) {
 
-                joinTable = IterableUtils.find(tableToSync.getJoinTable(), new Predicate<JoinTable>() {
-                    @Override
-                    public boolean evaluate(JoinTable object) {
-                        return fieldName.toUpperCase().endsWith(object.getJoinColumn());
-                    }
-                });
+                joinTable = IterableUtils.find(tableToSync.getJoinTable(), object -> fieldName.toUpperCase().endsWith(object.getJoinColumn()));
 
                 if (joinTable == null) {
                     throw new SyncException(SyncStatus.Code.ERROR_SYNC_COULD_DB, "Unable to find join table for field " + fieldName + " into definition");
