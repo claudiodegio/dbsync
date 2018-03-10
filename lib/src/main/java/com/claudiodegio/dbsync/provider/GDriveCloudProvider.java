@@ -13,17 +13,22 @@ import com.claudiodegio.dbsync.SyncStatus;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.drive.DriveApi.DriveContentsResult;
+import com.google.android.gms.drive.DriveClient;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.DriveResource.MetadataResult;
+import com.google.android.gms.drive.DriveResourceClient;
 import com.google.android.gms.drive.ExecutionOptions;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.events.CompletionEvent;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
 import org.apache.commons.io.FileUtils;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,30 +41,32 @@ public class GDriveCloudProvider implements CloudProvider {
 
     private final static String TAG = "GDriveCloudProvider";
 
-    final private GoogleApiClient mGoogleApiClient;
+    final private DriveResourceClient mDriveResourceClient;
+
     final private DriveId mDriveId;
     final private Context mCtx;
     private DriveContents mDriveContent;
     private GDriveCompletionRecevier mGDriveCompletionRecevier;
 
-    private GDriveCloudProvider(final Context ctx, final GoogleApiClient googleApiClient, final DriveId driveId){
-        this.mGoogleApiClient = googleApiClient;
+    private GDriveCloudProvider(final Context ctx,
+                                final DriveResourceClient driveResourceClient,
+                                final DriveId driveId){
         this.mDriveId = driveId;
         this.mCtx = ctx;
         this.mGDriveCompletionRecevier = new GDriveCompletionRecevier();
         this.mCtx.registerReceiver(mGDriveCompletionRecevier, new IntentFilter(GDriveEventService.CUSTOM_INTENT));
+        this.mDriveResourceClient = driveResourceClient;
     }
 
     @Override
     public int uploadFile(File tempFile) {
         DriveFile driveFile;
-        MetadataResult metadataResult;
         Metadata metadata;
-        DriveContents driveContents = null;
-        DriveContentsResult driveContentsResult;
         OutputStream outputStream;
         ExecutionOptions executionOptions;
         int complentionStatus;
+        Task<Metadata> taskMetadata;
+        Task<DriveContents> taskDriveContent;
 
         Log.i(TAG, "start upload of DB file temp:" + tempFile.getName());
 
@@ -67,10 +74,8 @@ public class GDriveCloudProvider implements CloudProvider {
             driveFile = mDriveId.asDriveFile();
 
             // Get metadata
-            metadataResult = driveFile.getMetadata(mGoogleApiClient).await();
-            checkStatus(metadataResult);
-
-            metadata = metadataResult.getMetadata();
+            taskMetadata = mDriveResourceClient.getMetadata(driveFile);
+            metadata = Tasks.await(taskMetadata);
 
             Log.i(TAG, "try to upload of DB file:" + metadata.getOriginalFilename());
 
@@ -79,12 +84,10 @@ public class GDriveCloudProvider implements CloudProvider {
             }
 
             // Writing file
-            driveContentsResult = mDriveContent.reopenForWrite(mGoogleApiClient).await();
-            checkStatus(driveContentsResult);
+            taskDriveContent = mDriveResourceClient.openFile(driveFile,DriveFile.MODE_WRITE_ONLY);
+            mDriveContent = Tasks.await(taskDriveContent);
 
-            driveContents = driveContentsResult.getDriveContents();
-
-            outputStream  = driveContents.getOutputStream();
+            outputStream  = mDriveContent.getOutputStream();
 
             // Copio il file
             FileUtils.copyFile(tempFile, outputStream);
@@ -96,7 +99,7 @@ public class GDriveCloudProvider implements CloudProvider {
                     .setConflictStrategy(ExecutionOptions.CONFLICT_STRATEGY_KEEP_REMOTE)
                     .build();
 
-            driveContents.commit(mGoogleApiClient, null, executionOptions);
+            mDriveResourceClient.commitContents(mDriveContent, null, executionOptions);
 
             Log.i(TAG, "file committed - wait for complention");
 
@@ -112,10 +115,11 @@ public class GDriveCloudProvider implements CloudProvider {
             }
 
             return UPLOAD_OK;
-        } catch (IOException e) {
-            if (driveContents != null) {
-                driveContents.discard(mGoogleApiClient);
+        } catch (Exception e) {
+            if (mDriveContent != null) {
+                mDriveResourceClient.discardContents(mDriveContent);
             }
+            Log.e(TAG, "uploadFile: " + e.getMessage());
             throw new SyncException(SyncStatus.Code.ERROR_UPLOAD_CLOUD, "Error writing file to GDrive message:" + e.getMessage());
         }
     }
@@ -123,10 +127,11 @@ public class GDriveCloudProvider implements CloudProvider {
     @Override
     public InputStream downloadFile() {
         DriveFile driveFile;
-        MetadataResult metadataResult;
         Metadata metadata;
-        DriveContentsResult driveContentsResult;
-        InputStream inputStream = null;
+        InputStream inputStream;
+        Task<Metadata> taskMetadata;
+        Task<DriveContents> taskDriveContent;
+
 
         Log.i(TAG, "start download of DB file");
 
@@ -135,18 +140,14 @@ public class GDriveCloudProvider implements CloudProvider {
             driveFile = mDriveId.asDriveFile();
 
             // Get metadata
-            metadataResult = driveFile.getMetadata(mGoogleApiClient).await();
-            checkStatus(metadataResult);
+            taskMetadata = mDriveResourceClient.getMetadata(driveFile);
+            metadata = Tasks.await(taskMetadata);
 
-            // Writing file
-            driveContentsResult = driveFile.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
-            checkStatus(driveContentsResult);
-
-            metadata = metadataResult.getMetadata();
+            // Reading file
+            taskDriveContent = mDriveResourceClient.openFile(driveFile,DriveFile.MODE_READ_ONLY);
+            mDriveContent = Tasks.await(taskDriveContent);
 
             Log.i(TAG, "downloaded DB file:" + metadata.getOriginalFilename() + " modified on: " + metadata.getModifiedDate() + " size:" + metadata.getFileSize() + " bytes");
-
-            mDriveContent = driveContentsResult.getDriveContents();
 
             inputStream  = mDriveContent.getInputStream();
 
@@ -158,8 +159,10 @@ public class GDriveCloudProvider implements CloudProvider {
             return inputStream;
         } catch (Exception e) {
             if (mDriveContent != null) {
-                mDriveContent.discard(mGoogleApiClient);
+                mDriveResourceClient.discardContents(mDriveContent);
             }
+            Log.e(TAG, "downloadFile: " + e.getMessage());
+
             throw new SyncException(SyncStatus.Code.ERROR_DOWNLOAD_CLOUD, "Error reading file from GDrive message:" + e.getMessage());
         }
     }
@@ -169,27 +172,14 @@ public class GDriveCloudProvider implements CloudProvider {
         this.mCtx.unregisterReceiver(mGDriveCompletionRecevier);
     }
 
-    private void checkStatus(Result result) throws SyncException {
-        if (!result.getStatus().isSuccess()) {
-            throw new SyncException(SyncStatus.Code.ERROR_UPLOAD_CLOUD, result.getStatus().getStatusMessage());
-        }
-    }
-
-
-    private void pinFile(final DriveFile file){
+    private void pinFile(final DriveFile file) throws Exception {
         MetadataChangeSet changeSet;
-        MetadataResult metadataResult;
-
-
         Log.i(TAG, "set file and pinned");
 
         changeSet = new MetadataChangeSet.Builder()
                 .setPinned(true)
                 .build();
-
-        metadataResult = file.updateMetadata(mGoogleApiClient, changeSet).await();
-
-        checkStatus(metadataResult);
+        Tasks.await(mDriveResourceClient.updateMetadata(file, changeSet));
     }
 
 
@@ -227,21 +217,12 @@ public class GDriveCloudProvider implements CloudProvider {
      */
     public static class Builder {
 
-        private GoogleApiClient mGoogleApiClient;
+        private DriveResourceClient mDriveResourceClient;
         private Context mCtx;
         private DriveId mDriveId;
 
         public Builder(final Context ctx) {
             this.mCtx = ctx;
-        }
-
-        /**
-         * The the google api client, must connected and configured
-         * @param googleApiClient the client to set
-         */
-        public Builder setGoogleApiClient(final GoogleApiClient googleApiClient) {
-            this.mGoogleApiClient = googleApiClient;
-            return this;
         }
 
         /**
@@ -254,7 +235,7 @@ public class GDriveCloudProvider implements CloudProvider {
         }
 
         /**
-         * Set the to use to sync
+         * Set the file to use to sync
          * @param s the drive file as encoded string
          */
         public Builder setSyncFileByString(String s) {
@@ -262,25 +243,29 @@ public class GDriveCloudProvider implements CloudProvider {
             return this;
         }
 
+
+        /**
+         * Set driver resource client
+         * @param mDriveResourceClient the drive resource client
+         */
+        public Builder setDriveResourceClient(DriveResourceClient mDriveResourceClient) {
+            this.mDriveResourceClient = mDriveResourceClient;
+            return this;
+        }
         /**
          * Build a new GDriveCloudProvider
          * @return the new created cloud provider
          */
         public GDriveCloudProvider build(){
-
-            if (mGoogleApiClient == null) {
-                throw new SyncBuildException("Missing google GoogleApiClient");
-            }
-
-            if (!mGoogleApiClient.isConnected()) {
-                throw new SyncBuildException("The GoogleApiClient is not connected");
+            if (mDriveResourceClient == null) {
+                throw new SyncBuildException("Missing DriveResourceClient");
             }
 
             if (mDriveId == null) {
                 throw new SyncBuildException("Missing DriveFile");
             }
 
-            return new GDriveCloudProvider(mCtx, mGoogleApiClient, mDriveId);
+            return new GDriveCloudProvider(mCtx, mDriveResourceClient, mDriveId);
         }
     }
 

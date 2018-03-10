@@ -57,9 +57,9 @@ public class MainDb5Activity extends BaseMainDbActivity implements TableViewerFr
     @Override
     public void onPostSelectFile() {
         Log.d(TAG, "onPostSelectFile");
-        /*CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
-                .setGoogleApiClient(mGoogleApiClient)
+                .setDriveResourceClient(mDriveResourceClient)
                 .build();
 
         TableToSync tableToSync = new TableToSync.Builder("category")
@@ -72,6 +72,6 @@ public class MainDb5Activity extends BaseMainDbActivity implements TableViewerFr
                 .setDataBaseName(app.db5OpenHelper.getDatabaseName())
                 .addTable(tableToSync)
                 .setSchemaVersion(2)
-                .build();*/
+                .build();
     }
 }

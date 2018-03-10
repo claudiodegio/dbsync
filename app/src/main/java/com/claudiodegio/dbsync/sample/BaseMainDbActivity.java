@@ -49,8 +49,8 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
     private final static String TAG = "BaseMainDbActivity";
 
     protected GoogleSignInClient mGoogleSignInClient;
-    private DriveClient mDriveClient;
-    private DriveResourceClient mDriveResourceClient;
+    protected DriveClient mDriveClient;
+    protected DriveResourceClient mDriveResourceClient;
 
     final int REQUEST_CODE_SIGN_IN = 101;
     final int REQUEST_CODE_SELECT_FILE = 200;
@@ -110,7 +110,14 @@ public abstract class BaseMainDbActivity extends BaseActivity  {
 
         if (driveId != null) {
             mDriveId = DriveId.decodeFromString(driveId);
+            mBtSync.setEnabled(true);
+            mBtResetLastSyncTimestamp.setEnabled(true);
             readMetadata();
+
+            if (dbSync != null) {
+                dbSync.dispose();
+            }
+            onPostSelectFile();
         }
     }
 

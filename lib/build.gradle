@@ -35,7 +35,7 @@ dependencies {
 
     // Library for serialize json
     implementation 'com.fasterxml.jackson.core:jackson-core:2.8.10'
-    // Google play services gdrive edition
+    // Google play services gdrive edition and auth
     compile 'com.google.android.gms:play-services-drive:11.8.0'
     compile 'com.google.android.gms:play-services-auth:11.8.0'
     implementation 'commons-io:commons-io:2.5'
