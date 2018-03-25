@@ -141,6 +141,7 @@ public class DBSync {
         } finally {
             if (tempFbFile != null && tempFbFile.exists()) {
                 Log.d(TAG, "delete db temp file:" + tempFbFile.getName());
+                tempFbFile.delete();
             }
         }
     }

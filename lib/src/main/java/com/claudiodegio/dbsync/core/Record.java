@@ -13,12 +13,7 @@ public class Record extends ArrayList<Value> {
 
         Value value;
 
-        value = IterableUtils.find(this, new Predicate<Value>() {
-            @Override
-            public boolean evaluate(Value object) {
-                return object.getMetadata().getName().equals(fieldName);
-            }
-        });
+        value = IterableUtils.find(this, object -> object.getMetadata().getName().equals(fieldName));
 
         return value;
     }

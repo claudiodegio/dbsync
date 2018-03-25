@@ -173,6 +173,10 @@ public class SqlLiteManager {
                 tableRecordChanged.addInseredId(id);
             } else {
                 // Update
+                if (dbRecordMatch.getSendTime() == sendTime) {
+                    Log.v(TAG, "syncRecord: ignored for send time same of current record");
+                    return;
+                }
 
                 // Check for possible conflict
                 if ((dbRecordMatch.getSendTime() == null
