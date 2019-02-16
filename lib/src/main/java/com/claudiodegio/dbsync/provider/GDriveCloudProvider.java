@@ -10,14 +10,9 @@ import android.util.Log;
 import com.claudiodegio.dbsync.exception.SyncBuildException;
 import com.claudiodegio.dbsync.exception.SyncException;
 import com.claudiodegio.dbsync.SyncStatus;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Result;
-import com.google.android.gms.drive.DriveApi.DriveContentsResult;
-import com.google.android.gms.drive.DriveClient;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.DriveResource.MetadataResult;
 import com.google.android.gms.drive.DriveResourceClient;
 import com.google.android.gms.drive.ExecutionOptions;
 import com.google.android.gms.drive.Metadata;
@@ -28,9 +23,7 @@ import com.google.android.gms.tasks.Tasks;
 
 import org.apache.commons.io.FileUtils;
 
-import java.io.EOFException;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
@@ -47,14 +40,14 @@ public class GDriveCloudProvider implements CloudProvider {
     final private DriveId mDriveId;
     final private Context mCtx;
     private DriveContents mDriveContent;
-    private GDriveCompletionRecevier mGDriveCompletionRecevier;
+    private GDriveCompletionReceiver mGDriveCompletionRecevier;
 
     private GDriveCloudProvider(final Context ctx,
                                 final DriveResourceClient driveResourceClient,
                                 final DriveId driveId){
         this.mDriveId = driveId;
         this.mCtx = ctx;
-        this.mGDriveCompletionRecevier = new GDriveCompletionRecevier();
+        this.mGDriveCompletionRecevier = new GDriveCompletionReceiver();
         this.mCtx.registerReceiver(mGDriveCompletionRecevier, new IntentFilter(GDriveEventService.CUSTOM_INTENT));
         this.mDriveResourceClient = driveResourceClient;
     }
@@ -107,12 +100,12 @@ public class GDriveCloudProvider implements CloudProvider {
 
             mDriveResourceClient.commitContents(mDriveContent, changeSet, executionOptions);
 
-            Log.i(TAG, "file committed - wait for complention");
+            Log.i(TAG, "file committed - wait for completion");
 
             // Wait for complention
             complentionStatus = mGDriveCompletionRecevier.waitCompletion();
 
-            Log.i(TAG, "received complention status:" + complentionStatus);
+            Log.i(TAG, "received completion status:" + complentionStatus);
 
             if (complentionStatus == CompletionEvent.STATUS_CONFLICT) {
                 return UPLOAD_CONFLICT;
@@ -190,9 +183,10 @@ public class GDriveCloudProvider implements CloudProvider {
     }
 
 
-    private class GDriveCompletionRecevier extends BroadcastReceiver {
+    private class GDriveCompletionReceiver extends BroadcastReceiver {
 
         private int result;
+        private boolean eventToConsume = false;
         @Override
         public void onReceive(Context context, Intent intent) {
             final DriveId driveId = intent.getParcelableExtra(GDriveEventService.BUNDLE_DRIVEID);
@@ -202,6 +196,8 @@ public class GDriveCloudProvider implements CloudProvider {
             if (driveId.equals(mDriveId)) {
                 result =  intent.getIntExtra(GDriveEventService.BUNDLE_SUCCESS, -1);
                 synchronized (this) {
+                    Log.i(TAG, "onReceive notify result:" + result);
+                    eventToConsume = true;
                     notify();
                 }
             }
@@ -209,12 +205,18 @@ public class GDriveCloudProvider implements CloudProvider {
 
         private int waitCompletion(){
 
+            Log.i(TAG, "waitCompletion wait");
+
             try {
-                synchronized (this) {
-                    wait();
+                while (!eventToConsume) {
+                    synchronized (this) {
+                        wait(100);
+                    }
                 }
+
             } catch (InterruptedException ignored) { }
 
+            eventToConsume = false;
             return result;
         }
     }
