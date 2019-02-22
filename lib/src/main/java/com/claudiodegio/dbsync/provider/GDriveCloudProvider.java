@@ -193,6 +193,8 @@ public class GDriveCloudProvider implements CloudProvider {
 
             Log.i(TAG, "onReceive completion event for driveID:" + driveId.encodeToString());
 
+            Log.i(TAG, "startDriveId:" + mDriveId);
+
             if (driveId.equals(mDriveId)) {
                 result =  intent.getIntExtra(GDriveEventService.BUNDLE_SUCCESS, -1);
                 synchronized (this) {
@@ -210,6 +212,7 @@ public class GDriveCloudProvider implements CloudProvider {
             try {
                 while (!eventToConsume) {
                     synchronized (this) {
+                        Log.i(TAG, "waitCompletion wait");
                         wait(100);
                     }
                 }
