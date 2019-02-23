@@ -210,10 +210,11 @@ public class GDriveCloudProvider implements CloudProvider {
             Log.i(TAG, "waitCompletion wait");
 
             try {
-                while (!eventToConsume) {
+
+                if (!eventToConsume) {
                     synchronized (this) {
                         Log.i(TAG, "waitCompletion wait");
-                        wait(100);
+                        wait(2000);
                     }
                 }
 
