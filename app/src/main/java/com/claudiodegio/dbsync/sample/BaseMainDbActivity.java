@@ -19,8 +19,10 @@ import com.claudiodegio.dbsync.SyncResult;
 import com.claudiodegio.dbsync.core.RecordChanged;
 import com.claudiodegio.dbsync.core.RecordSyncResult;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.drive.CreateFileActivityOptions;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveClient;
@@ -30,6 +32,10 @@ import com.google.android.gms.drive.DriveResourceClient;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.OpenFileActivityOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.drive.DriveScopes;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -82,6 +88,8 @@ public abstract class BaseMainDbActivity extends BaseActivity {
 
     Handler mMainHandler;
 
+    protected  com.google.api.services.drive.Drive googleDriveService;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,11 +98,8 @@ public abstract class BaseMainDbActivity extends BaseActivity {
 
         if (GoogleSignIn.getLastSignedInAccount(this) != null) {
             // Use the last signed in account here since it already have a Drive scope.
-            mDriveClient = Drive.getDriveClient(this, GoogleSignIn.getLastSignedInAccount(this));
+            handleSignInONRecnnect();
 
-            // Build a drive resource client.
-            mDriveResourceClient =
-                    Drive.getDriveResourceClient(this, GoogleSignIn.getLastSignedInAccount(this));
             successSingIn();
         } else {
             signIn();
@@ -131,7 +136,7 @@ public abstract class BaseMainDbActivity extends BaseActivity {
     private GoogleSignInClient buildGoogleSignInClient() {
         GoogleSignInOptions signInOptions =
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestScopes(Drive.SCOPE_FILE)
+                        .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
                         .build();
         return GoogleSignIn.getClient(this, signInOptions);
     }
@@ -155,12 +160,7 @@ public abstract class BaseMainDbActivity extends BaseActivity {
             case REQUEST_CODE_SIGN_IN:
                 if (resultCode == RESULT_OK) {
                     Log.i(TAG, "Signed in successfully.");
-                    // Use the last signed in account here since it already have a Drive scope.
-                    mDriveClient = Drive.getDriveClient(this, GoogleSignIn.getLastSignedInAccount(this));
-
-                    // Build a drive resource client.
-                    mDriveResourceClient =
-                            Drive.getDriveResourceClient(this, GoogleSignIn.getLastSignedInAccount(this));
+                    handleSignInResult(data);
 
                     successSingIn();
                 }
@@ -340,6 +340,53 @@ public abstract class BaseMainDbActivity extends BaseActivity {
         }
     }
 
+    private void handleSignInResult(Intent result) {
+        GoogleSignIn.getSignedInAccountFromIntent(result)
+                .addOnSuccessListener(googleAccount -> {
+                    Log.d(TAG, "Signed in as " + googleAccount.getEmail());
+
+                    // Use the authenticated account to sign in to the Drive service.
+                    GoogleAccountCredential credential =
+                            GoogleAccountCredential.usingOAuth2(
+                                    this, Collections.singleton(DriveScopes.DRIVE_FILE));
+                    credential.setSelectedAccount(googleAccount.getAccount());
+
+                    googleDriveService =
+                            new com.google.api.services.drive.Drive.Builder(
+                                    AndroidHttp.newCompatibleTransport(),
+                                    new GsonFactory(),
+                                    credential)
+                                    .setApplicationName("Drive API DBSync")
+                                    .build();
+
+                    // The DriveServiceHelper encapsulates all REST API and SAF functionality.
+                    // Its instantiation is required before handling any onClick actions.
+                    //mDriveServiceHelper = new DriveServiceHelper(googleDriveService);
+                })
+                .addOnFailureListener(exception -> Log.e(TAG, "Unable to sign in.", exception));
+    }
+
+    private void handleSignInONRecnnect() {
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+
+        if  (account != null ){
+            Log.d(TAG, "Signed in as " + account.getEmail());
+
+            // Use the authenticated account to sign in to the Drive service.
+            GoogleAccountCredential credential =
+                    GoogleAccountCredential.usingOAuth2(
+                            this, Collections.singleton(DriveScopes.DRIVE_FILE));
+            credential.setSelectedAccount(account.getAccount());
+
+            googleDriveService =
+                    new com.google.api.services.drive.Drive.Builder(
+                            AndroidHttp.newCompatibleTransport(),
+                            new GsonFactory(),
+                            credential)
+                            .setApplicationName("Drive API DBSync")
+                            .build();
+        }
+    }
 
     private void successSingIn() {
         mTvStatus2.setText("GDrive Client - Connected");

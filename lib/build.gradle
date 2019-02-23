@@ -37,4 +37,14 @@ dependencies {
     compile 'com.google.android.gms:play-services-auth:16.0.1'
     implementation 'commons-io:commons-io:2.5'
     implementation 'org.apache.commons:commons-collections4:4.1'
+
+    // Migration to google drive api rest
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    implementation 'com.google.http-client:google-http-client-gson:1.28.0'
+    implementation('com.google.api-client:google-api-client-android:1.28.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev152-1.25.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
 }
