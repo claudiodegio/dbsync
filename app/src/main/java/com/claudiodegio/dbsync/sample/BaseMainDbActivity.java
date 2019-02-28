@@ -1,20 +1,26 @@
 package com.claudiodegio.dbsync.sample;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.DocumentsContract;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.claudiodegio.dbsync.DBSync;
+import com.claudiodegio.dbsync.SAFUtils;
 import com.claudiodegio.dbsync.SyncResult;
 import com.claudiodegio.dbsync.core.RecordChanged;
 import com.claudiodegio.dbsync.core.RecordSyncResult;
@@ -31,22 +37,32 @@ import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.DriveResourceClient;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.OpenFileActivityOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.DriveScopes;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import im.dino.dbinspector.activities.DbInspectorActivity;
+
+import static android.widget.Toast.LENGTH_LONG;
 
 public abstract class BaseMainDbActivity extends BaseActivity {
 
@@ -55,6 +71,9 @@ public abstract class BaseMainDbActivity extends BaseActivity {
     protected GoogleSignInClient mGoogleSignInClient;
     protected DriveClient mDriveClient;
     protected DriveResourceClient mDriveResourceClient;
+
+    private final Executor mExecutor = Executors.newSingleThreadExecutor();
+
 
     final int REQUEST_CODE_SIGN_IN = 101;
     final int REQUEST_CODE_SELECT_FILE = 200;
@@ -87,6 +106,8 @@ public abstract class BaseMainDbActivity extends BaseActivity {
     protected DBSync dbSync;
 
     Handler mMainHandler;
+
+    private String DRIVE_ID = "1crGTRLjwSUSPjIEpQl6OrLfW-LT3MtUI";
 
     protected  com.google.api.services.drive.Drive googleDriveService;
 
@@ -170,7 +191,7 @@ public abstract class BaseMainDbActivity extends BaseActivity {
             case REQUEST_CODE_NEW_FILE:
                 if (resultCode == RESULT_OK) {
 
-                    mDriveId = data.getParcelableExtra(CreateFileActivityOptions.EXTRA_RESPONSE_DRIVE_ID);
+                    /*mDriveId = data.getParcelableExtra(CreateFileActivityOptions.EXTRA_RESPONSE_DRIVE_ID);
 
                     Log.d(TAG, "driveId: " + mDriveId.encodeToString());
 
@@ -186,16 +207,45 @@ public abstract class BaseMainDbActivity extends BaseActivity {
                     if (dbSync != null) {
                         dbSync.dispose();
                     }
+                    onPostSelectFile();*/
+
+                 //   Log.d(TAG, "data: " + data.getData().toString());
+
+
+                    //googleDriveService.files().list().execute().
+
+
+
+                  /*  Tasks.call(mExecutor, () -> googleDriveService.files().list().execute())
+                            .addOnSuccessListener(fileList -> {
+
+                                for (File file : fileList.getFiles()) {
+                                    Log.d(TAG, "file found: " + file.getId());
+                                    Log.d(TAG, "file name: " + file.getName());
+
+                                }
+
+                            });*/
+
+                    /*File file = new File()
+                            .setFileExtension("text.json")
+                            .setName("Sync file.dbsync");
+
+                    Tasks.call(mExecutor, () -> googleDriveService.files().create(file).execute())
+                            .addOnSuccessListener(file1 -> Toast.makeText(BaseMainDbActivity.this, "File creation", LENGTH_LONG).show());
+*/
                     onPostSelectFile();
+
+                    break;
                 }
-                break;
         }
     }
 
     @OnClick(R.id.btSelectFileForSync)
     public void actionSelectFileForSync() {
         try {
-            OpenFileActivityOptions openFileActivityOptions =
+            // Vecchia versione
+            /*OpenFileActivityOptions openFileActivityOptions =
                     new OpenFileActivityOptions.Builder()
                             .setActivityTitle("Select file for sync")
                             .build();
@@ -208,8 +258,12 @@ public abstract class BaseMainDbActivity extends BaseActivity {
                             Toast.makeText(BaseMainDbActivity.this, "Unable to create file", Toast.LENGTH_SHORT).show();
                             finish();
                         }
-                    });
+                    });*/
 
+            Intent pickerIntent = SAFUtils.createSelectFilePickerIntent();
+
+            // The result of the SAF Intent is handled in onActivityResult.
+            startActivityForResult(pickerIntent, REQUEST_CODE_SELECT_FILE);
         } catch (Exception e) {
             Log.w(TAG, "Unable to send intent", e);
         }
@@ -220,7 +274,8 @@ public abstract class BaseMainDbActivity extends BaseActivity {
     public void actionCreateFileForSync() {
 
 
-        Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
+        // VECCHIA versione
+        /*Task<DriveContents> createContentsTask = mDriveResourceClient.createContents();
 
 
         createContentsTask.continueWithTask(task -> {
@@ -245,7 +300,24 @@ public abstract class BaseMainDbActivity extends BaseActivity {
                 Toast.makeText(BaseMainDbActivity.this, "Unable to create file", Toast.LENGTH_SHORT).show();
                 finish();
             }
-        });
+        });*/
+
+        /*Intent pickerIntent = SAFUtils.createAddFilePickerIntent("my file.json");
+
+        // The result of the SAF Intent is handled in onActivityResult.
+        startActivityForResult(pickerIntent, REQUEST_CODE_NEW_FILE);*/
+
+
+        Tasks.call(mExecutor, () -> {
+            File file = new File()
+                    .setMimeType("text/json")
+                    .setName("Sync file.dbsync")
+                    .setParents(Collections.singletonList("root"));
+
+            return googleDriveService.files().create(file).execute().getId();
+        }) .addOnSuccessListener(file1 ->
+        {  Log.d(TAG, "actionCreateFileForSync: " + file1);
+        }).addOnFailureListener(e -> Log.e(TAG, "actionCreateFileForSync: " + e.getMessage()));
 
     }
 
@@ -284,11 +356,14 @@ public abstract class BaseMainDbActivity extends BaseActivity {
     public abstract void onPostSelectFile();
 
 
+    @SuppressLint("SetTextI18n")
     private void readMetadata() {
 
+        Tasks.call(mExecutor, () ->
+                googleDriveService.files().get(DRIVE_ID).execute())
+                .addOnSuccessListener(file -> mTvFileName.setText("File name: " + file.getName()))
+                .addOnFailureListener(e -> Log.e(TAG, e.getMessage()));
 
-        mDriveResourceClient.getMetadata(mDriveId.asDriveFile())
-                .addOnSuccessListener(this, metadata -> mTvFileName.setText("File name: " + metadata.getOriginalFilename()));
     }
 
     class UpdateCurrentTime implements Runnable {
@@ -393,7 +468,7 @@ public abstract class BaseMainDbActivity extends BaseActivity {
         mBtSelectFileForSync.setEnabled(true);
         mBtCreateFileForSync.setEnabled(true);
 
-        if (mDriveId != null) {
+        if (DRIVE_ID!= null) {
             mTvStatus2.setText("GDrive Client - Connected - File Selected");
             mBtSync.setEnabled(true);
             mBtResetLastSyncTimestamp.setEnabled(true);

@@ -20,6 +20,7 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.events.CompletionEvent;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.api.services.drive.Drive;
 
 import org.apache.commons.io.FileUtils;
 
@@ -42,10 +43,18 @@ public class GDriveCloudProvider implements CloudProvider {
     private DriveContents mDriveContent;
     private GDriveCompletionReceiver mGDriveCompletionRecevier;
 
+    // New version
+    private final Drive mDriveService;
+    private final String mNewDriveID;
+
     private GDriveCloudProvider(final Context ctx,
+                                final Drive driveService,
+                                final String newDriveId,
                                 final DriveResourceClient driveResourceClient,
                                 final DriveId driveId){
         this.mDriveId = driveId;
+        this.mDriveService = driveService;
+        this.mNewDriveID = newDriveId;
         this.mCtx = ctx;
         this.mGDriveCompletionRecevier = new GDriveCompletionReceiver();
         this.mCtx.registerReceiver(mGDriveCompletionRecevier, new IntentFilter(GDriveEventService.CUSTOM_INTENT));
@@ -234,6 +243,9 @@ public class GDriveCloudProvider implements CloudProvider {
         private Context mCtx;
         private DriveId mDriveId;
 
+        private Drive mDriveService;
+        private String mNewDriveID;
+
         public Builder(final Context ctx) {
             this.mCtx = ctx;
         }
@@ -265,20 +277,24 @@ public class GDriveCloudProvider implements CloudProvider {
             this.mDriveResourceClient = mDriveResourceClient;
             return this;
         }
+
+        public Builder setDriveService(Drive mDriveService) {
+            this.mDriveService = mDriveService;
+            return this;
+        }
+
+        public Builder setNewDriveID(String mNewDriveID) {
+            this.mNewDriveID = mNewDriveID;
+            return this;
+        }
+
         /**
          * Build a new GDriveCloudProvider
          * @return the new created cloud provider
          */
         public GDriveCloudProvider build(){
-            if (mDriveResourceClient == null) {
-                throw new SyncBuildException("Missing DriveResourceClient");
-            }
 
-            if (mDriveId == null) {
-                throw new SyncBuildException("Missing DriveFile");
-            }
-
-            return new GDriveCloudProvider(mCtx, mDriveResourceClient, mDriveId);
+            return new GDriveCloudProvider(mCtx, mDriveService, mNewDriveID, mDriveResourceClient, mDriveId);
         }
     }
 
