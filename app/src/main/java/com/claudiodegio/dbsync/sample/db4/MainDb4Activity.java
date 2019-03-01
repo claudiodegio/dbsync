@@ -31,7 +31,7 @@ public class MainDb4Activity extends BaseMainDbActivity  {
     @Override
     public void onPostSelectFile() {
 
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+        /*CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
                 .setSyncFileByDriveId(mDriveId)
                 .setDriveResourceClient(mDriveResourceClient)
                 .build();
@@ -52,7 +52,7 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .addTable(tableArticle)
                 .setSchemaVersion(1)
                 .build();
-
+*/
 
     }
 
