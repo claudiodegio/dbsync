@@ -125,12 +125,6 @@
         </activity>
 
         <activity
-            android:name=".TestGDriveActivity"
-            android:label="GDRIVE"
-            android:theme="@style/AppTheme">
-        </activity>
-
-        <activity
             android:name="im.dino.dbinspector.activities.DbInspectorActivity">
             <intent-filter tools:node="removeAll">
                 <action android:name="android.intent.action.MAIN" />

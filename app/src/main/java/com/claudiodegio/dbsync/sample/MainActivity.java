@@ -59,11 +59,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @OnClick(R.id.btGDrive)
-    public void goToGDRive(){
-
-        startActivity(new Intent(this, TestGDriveActivity.class));
-    }
 
     @OnClick(R.id.btToDbManager)
     public void goToDBManager(){

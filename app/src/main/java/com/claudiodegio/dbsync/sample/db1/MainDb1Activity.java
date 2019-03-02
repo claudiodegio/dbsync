@@ -60,7 +60,7 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
 
         String driveID = "1crGTRLjwSUSPjIEpQl6OrLfW-LT3MtUI";
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
-                  .setNewDriveID(driveID)
+                  .setDriveID(driveID)
                 .setDriveService(googleDriveService)
                 .build();
 

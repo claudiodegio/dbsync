@@ -4,20 +4,13 @@ package com.claudiodegio.dbsync.sample;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.DocumentsContract;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.claudiodegio.dbsync.DBSync;
 import com.claudiodegio.dbsync.SAFUtils;
@@ -29,51 +22,31 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.drive.CreateFileActivityOptions;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveClient;
-import com.google.android.gms.drive.DriveContents;
-import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.DriveResourceClient;
-import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.OpenFileActivityOptions;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.FileList;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import im.dino.dbinspector.activities.DbInspectorActivity;
 
-import static android.widget.Toast.LENGTH_LONG;
-
 public abstract class BaseMainDbActivity extends BaseActivity {
 
     private final static String TAG = "BaseMainDbActivity";
 
     protected GoogleSignInClient mGoogleSignInClient;
-    protected DriveClient mDriveClient;
-    protected DriveResourceClient mDriveResourceClient;
-
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
-
 
     final int REQUEST_CODE_SIGN_IN = 101;
     final int REQUEST_CODE_SELECT_FILE = 200;
@@ -102,7 +75,6 @@ public abstract class BaseMainDbActivity extends BaseActivity {
     @BindView(R.id.btResetLastSyncTimestamp)
     Button mBtResetLastSyncTimestamp;
 
-    protected DriveId mDriveId;
     protected DBSync dbSync;
 
     Handler mMainHandler;
@@ -133,7 +105,6 @@ public abstract class BaseMainDbActivity extends BaseActivity {
         String driveId = getPreferences(Context.MODE_PRIVATE).getString(DRIVE_ID_FILE, null);
 
         if (driveId != null) {
-            mDriveId = DriveId.decodeFromString(driveId);
             mBtSync.setEnabled(true);
             mBtResetLastSyncTimestamp.setEnabled(true);
             readMetadata();
