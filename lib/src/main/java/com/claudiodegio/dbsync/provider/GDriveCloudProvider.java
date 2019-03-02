@@ -51,12 +51,13 @@ public class GDriveCloudProvider implements CloudProvider {
                     .setFields("md5Checksum")
                     .execute();
 
-
             md5sumCurrent = fileMetadata.getMd5Checksum();
 
             Log.i(TAG, "md5Checksum to check " + md5sumCurrent);
 
             if (!md5sumCurrent.equals(md5Sum)) {
+                Log.w(TAG, "conflict detected");
+
                 return UPLOAD_CONFLICT;
             }
 
