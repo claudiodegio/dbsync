@@ -1,8 +1,7 @@
-package com.claudiodegio.dbsync;
+package com.claudiodegio.dbsync.sample;
 
 import android.content.Intent;
 
-@Deprecated
 public class SAFUtils {
 
     /**

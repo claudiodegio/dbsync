@@ -57,9 +57,10 @@ public class MainDb3Activity extends BaseMainDbActivity implements TableViewerFr
     @Override
     public void onPostSelectFile() {
 
-       /* CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
-                .setSyncFileByDriveId(mDriveId)
-                 .setDriveResourceClient(mDriveResourceClient)
+
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+                .setDriveID(driveId)
+                .setDriveService(googleDriveService)
                 .build();
 
         TableToSync tableName = new TableToSync.Builder("name")
@@ -72,6 +73,6 @@ public class MainDb3Activity extends BaseMainDbActivity implements TableViewerFr
                 .setDataBaseName(app.db3OpenHelper.getDatabaseName())
                 .addTable(tableName)
                 .setSchemaVersion(2)
-                .build();*/
+                .build();
     }
 }
