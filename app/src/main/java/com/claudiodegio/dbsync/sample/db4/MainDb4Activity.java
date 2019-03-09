@@ -31,11 +31,11 @@ public class MainDb4Activity extends BaseMainDbActivity  {
     @Override
     public void onPostSelectFile() {
 
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
-                .setSyncFileByDriveId(mDriveId)
-                .setDriveResourceClient(mDriveResourceClient)
-                .build();
 
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+                .setDriveID(driveId)
+                .setDriveService(googleDriveService)
+                .build();
 
         TableToSync tableCategory = new TableToSync.Builder("CATEGORY")
                 .build();
@@ -52,7 +52,6 @@ public class MainDb4Activity extends BaseMainDbActivity  {
                 .addTable(tableArticle)
                 .setSchemaVersion(1)
                 .build();
-
 
     }
 

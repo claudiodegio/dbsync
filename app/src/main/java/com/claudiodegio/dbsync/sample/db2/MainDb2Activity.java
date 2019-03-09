@@ -31,9 +31,10 @@ public class MainDb2Activity extends BaseMainDbActivity  {
 
     @Override
     public void onPostSelectFile() {
+
         CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
-                .setSyncFileByDriveId(mDriveId)
-                .setDriveResourceClient(mDriveResourceClient)
+                .setDriveID(driveId)
+                .setDriveService(googleDriveService)
                 .build();
 
         dbSync = new DBSync.Builder(this.getBaseContext())

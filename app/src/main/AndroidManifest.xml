@@ -5,6 +5,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -120,12 +121,6 @@
         <activity
             android:name=".db5.InsertNameActivity"
             android:label="DB5 - I. NAME"
-            android:theme="@style/AppTheme">
-        </activity>
-
-        <activity
-            android:name=".TestGDriveActivity"
-            android:label="GDRIVE"
             android:theme="@style/AppTheme">
         </activity>
 

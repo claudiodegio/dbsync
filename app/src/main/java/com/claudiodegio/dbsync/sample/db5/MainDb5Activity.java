@@ -57,11 +57,11 @@ public class MainDb5Activity extends BaseMainDbActivity implements TableViewerFr
     @Override
     public void onPostSelectFile() {
         Log.d(TAG, "onPostSelectFile");
-        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
-                .setSyncFileByDriveId(mDriveId)
-                .setDriveResourceClient(mDriveResourceClient)
-                .build();
 
+        CloudProvider gDriveProvider = new GDriveCloudProvider.Builder(this.getBaseContext())
+                .setDriveID(driveId)
+                .setDriveService(googleDriveService)
+                .build();
         TableToSync tableToSync = new TableToSync.Builder("category")
                 .addMatchRule("NAME = :NAME")
                 .build();

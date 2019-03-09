@@ -5,9 +5,10 @@ android {
     buildToolsVersion "28.0.3"
 
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 19
         targetSdkVersion 28
-        versionCode 4
+        multiDexEnabled true
+        versionCode 5
         versionName "2.0.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -29,12 +30,18 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-
     // Library for serialize json
     implementation 'com.fasterxml.jackson.core:jackson-core:2.9.8'
-    // Google play services gdrive edition and auth
-    compile 'com.google.android.gms:play-services-drive:16.0.0'
-    compile 'com.google.android.gms:play-services-auth:16.0.1'
     implementation 'commons-io:commons-io:2.5'
     implementation 'org.apache.commons:commons-collections4:4.1'
+
+    // Migration to google drive api rest
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    implementation 'com.google.http-client:google-http-client-gson:1.28.0'
+    implementation('com.google.api-client:google-api-client-android:1.28.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev152-1.25.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
 }

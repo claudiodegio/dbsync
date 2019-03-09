@@ -1,6 +1,6 @@
 package com.claudiodegio.dbsync.sample;
 
-import android.app.Application;
+import android.support.multidex.MultiDexApplication;
 
 import com.claudiodegio.dbsync.sample.db1.Db1OpenHelper;
 import com.claudiodegio.dbsync.sample.db2.Db2OpenHelper;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;
 
 
-public class DbSyncApplication extends Application {
+public class DbSyncApplication extends MultiDexApplication {
     static private Logger log;
 
     public Db1OpenHelper db1OpenHelper;

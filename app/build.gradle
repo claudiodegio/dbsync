@@ -5,11 +5,13 @@ android {
     buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "com.claudiodegio.dbsync.sample"
-        minSdkVersion 15
+        minSdkVersion 19
         targetSdkVersion 28
         versionCode 4
         versionName "2.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+
     }
     buildTypes {
         release {
@@ -29,15 +31,31 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(":lib")
 
+    implementation 'com.android.support:multidex:1.0.3'
+
+
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support:design:28.0.0'
-    testCompile 'junit:junit:4.12'
 
-    compile 'com.jakewharton:butterknife:8.8.1'
+    implementation 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     implementation 'com.github.claudiodegio:sfl4j-android:1.0.0'
     implementation 'im.dino:dbinspector:3.4.1@aar'
     implementation 'de.codecrafters.tableview:tableview:2.4.2'
     implementation 'commons-io:commons-io:2.5'
+
+
+    // Migration to google drive api rest
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    implementation 'com.google.http-client:google-http-client-gson:1.28.0'
+    implementation('com.google.api-client:google-api-client-android:1.28.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev152-1.25.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+
+    implementation 'com.android.support:multidex:1.0.3'
+
 }
