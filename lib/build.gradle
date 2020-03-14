@@ -28,15 +28,15 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    api fileTree(dir: 'libs', include: ['*.jar'])
 
     // Library for serialize json
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.8'
-    implementation 'commons-io:commons-io:2.5'
-    implementation 'org.apache.commons:commons-collections4:4.1'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.10.2'
+    implementation 'commons-io:commons-io:2.6'
+    implementation 'org.apache.commons:commons-collections4:4.4'
 
     // Migration to google drive api rest
-    implementation 'com.google.android.gms:play-services-auth:16.0.1'
+    implementation 'com.google.android.gms:play-services-auth:17.0.0'
     implementation 'com.google.http-client:google-http-client-gson:1.28.0'
     implementation('com.google.api-client:google-api-client-android:1.28.0') {
         exclude group: 'org.apache.httpcomponents'

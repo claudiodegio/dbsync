@@ -4,6 +4,10 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/dbsync.iml" filepath="$PROJECT_DIR$/dbsync.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/dbsync-app.iml" filepath="$PROJECT_DIR$/app/dbsync-app.iml" group="dbsync/app" />
+      <module fileurl="file://$PROJECT_DIR$/lib/dbsync-lib.iml" filepath="$PROJECT_DIR$/lib/dbsync-lib.iml" group="dbsync/lib" />
+      <module fileurl="file://$PROJECT_DIR$/test/dbsync-test.iml" filepath="$PROJECT_DIR$/test/dbsync-test.iml" group="dbsync/test" />
+      <module fileurl="file://$PROJECT_DIR$/easy-dbsync.iml" filepath="$PROJECT_DIR$/easy-dbsync.iml" group="dbsync" />
       <module fileurl="file://$PROJECT_DIR$/lib/lib.iml" filepath="$PROJECT_DIR$/lib/lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/test/test.iml" filepath="$PROJECT_DIR$/test/test.iml" />
     </modules>
