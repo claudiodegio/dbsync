@@ -145,14 +145,6 @@ DBSync dbSync = new DBSync.Builder(this.getBaseContext())
         .addTable(tableArticle)
         .build();
 ```
-### Configure of gdrive service
-```xml
-<service android:name="com.claudiodegio.dbsync.provider.GDriveEventService" android:exported="true">
-    <intent-filter>
-        <action android:name="com.google.android.gms.drive.events.HANDLE_EVENT"/>
-    </intent-filter>
-</service>
-```
 
 ### How sync
 
@@ -182,7 +174,7 @@ dependencies {
 
 ## License
 
-Copyright 2018 Claudio Degioanni
+Copyright 2020 Claudio Degioanni
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
