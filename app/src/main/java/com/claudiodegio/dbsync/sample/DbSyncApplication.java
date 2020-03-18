@@ -1,12 +1,14 @@
 package com.claudiodegio.dbsync.sample;
 
 import androidx.multidex.MultiDexApplication;
+import androidx.sqlite.db.SupportSQLiteOpenHelper;
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 
-import com.claudiodegio.dbsync.sample.db1.Db1OpenHelper;
-import com.claudiodegio.dbsync.sample.db2.Db2OpenHelper;
-import com.claudiodegio.dbsync.sample.db3.Db3OpenHelper;
-import com.claudiodegio.dbsync.sample.db4.Db4OpenHelper;
-import com.claudiodegio.dbsync.sample.db5.Db5OpenHelper;
+import com.claudiodegio.dbsync.sample.db1.Db1Callback;
+import com.claudiodegio.dbsync.sample.db2.Db2Callback;
+import com.claudiodegio.dbsync.sample.db3.Db3Callback;
+import com.claudiodegio.dbsync.sample.db4.Db4Callback;
+import com.claudiodegio.dbsync.sample.db5.Db5Callback;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,15 +18,15 @@ import org.slf4j.impl.StaticLoggerBinder;
 public class DbSyncApplication extends MultiDexApplication {
     static private Logger log;
 
-    public Db1OpenHelper db1OpenHelper;
-    public Db2OpenHelper db2OpenHelper;
-    public Db3OpenHelper db3OpenHelper;
-    public Db4OpenHelper db4OpenHelper;
-    public Db5OpenHelper db5OpenHelper;
-
+    public SupportSQLiteOpenHelper db1OpenHelper;
+    public SupportSQLiteOpenHelper db2OpenHelper;
+    public SupportSQLiteOpenHelper db3OpenHelper;
+    public SupportSQLiteOpenHelper db4OpenHelper;
+    public SupportSQLiteOpenHelper db5OpenHelper;
 
     @Override
     public void onCreate() {
+        SupportSQLiteOpenHelper.Configuration  configuration;
         super.onCreate();
 
         StaticLoggerBinder.init(this);
@@ -32,19 +34,46 @@ public class DbSyncApplication extends MultiDexApplication {
 
         log.info("onCreate");
 
-        db1OpenHelper = new Db1OpenHelper(this);
+
+        configuration = SupportSQLiteOpenHelper.Configuration.builder(this)
+                .name("db1")
+                .callback(new Db1Callback())
+                .build();
+        db1OpenHelper = new FrameworkSQLiteOpenHelperFactory()
+                .create(configuration);
         db1OpenHelper.getReadableDatabase();
 
-        db2OpenHelper = new Db2OpenHelper(this);
+        configuration = SupportSQLiteOpenHelper.Configuration.builder(this)
+                .name("db2")
+                .callback(new Db2Callback())
+                .build();
+        db2OpenHelper = new FrameworkSQLiteOpenHelperFactory()
+                .create(configuration);
         db2OpenHelper.getReadableDatabase();
 
-        db3OpenHelper = new Db3OpenHelper(this);
+        configuration = SupportSQLiteOpenHelper.Configuration.builder(this)
+                .name("db3")
+                .callback(new Db3Callback())
+                .build();
+        db3OpenHelper = new FrameworkSQLiteOpenHelperFactory()
+                .create(configuration);
         db3OpenHelper.getReadableDatabase();
 
-        db4OpenHelper = new Db4OpenHelper(this);
+        configuration = SupportSQLiteOpenHelper.Configuration.builder(this)
+                .name("db4")
+                .callback(new Db4Callback())
+                .build();
+        db4OpenHelper = new FrameworkSQLiteOpenHelperFactory()
+                .create(configuration);
         db4OpenHelper.getReadableDatabase();
 
-        db5OpenHelper = new Db5OpenHelper(this);
+
+        configuration = SupportSQLiteOpenHelper.Configuration.builder(this)
+                .name("db5")
+                .callback(new Db5Callback())
+                .build();
+        db5OpenHelper = new FrameworkSQLiteOpenHelperFactory()
+                .create(configuration);
         db5OpenHelper.getReadableDatabase();
     }
 }

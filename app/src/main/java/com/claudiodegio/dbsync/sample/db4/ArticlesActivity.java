@@ -20,7 +20,7 @@ public class ArticlesActivity extends BaseActivity implements TableViewerFragmen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fragment);
 
-        mFragment = TableViewerFragment.newInstance("db4.db", "article");
+        mFragment = TableViewerFragment.newInstance("db4", "article");
 
         mFragment.setOnItemClicked(this);
 

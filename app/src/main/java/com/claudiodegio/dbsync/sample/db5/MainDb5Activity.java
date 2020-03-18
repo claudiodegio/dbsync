@@ -28,7 +28,7 @@ public class MainDb5Activity extends BaseMainDbActivity implements TableViewerFr
         super.onCreate(savedInstanceState);
 
 
-        mFragment = TableViewerFragment.newInstance("db5.db", "category");
+        mFragment = TableViewerFragment.newInstance("db5", "category");
         mFragment.setOnItemClicked(this);
 
         FragmentManager fm = getFragmentManager();

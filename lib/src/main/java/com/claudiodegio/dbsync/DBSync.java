@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.IntDef;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -38,7 +40,7 @@ public class DBSync {
     final static private String TAG = "DBSync";
 
     final private CloudProvider mCloudProvider;
-    final private SQLiteDatabase mDB;
+    final private SupportSQLiteDatabase mDB;
     final private SqlLiteManager mManager;
     final private List<TableToSync> mTables;
     final private Context mCtx;
@@ -52,7 +54,7 @@ public class DBSync {
         int CLIENT = 2;
     }
 
-    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, final String localPrefName, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
+    private DBSync(final Context ctx, final CloudProvider cloudProvider, final SupportSQLiteDatabase db, final String dataBaseName, final List<TableToSync> tables, final String localPrefName, @ConflictPolicy int conflictPolicy, int thresholdSeconds, int schemaVersion){
         this.mCtx = ctx;
         this.mCloudProvider = cloudProvider;
         this.mDB = db;
@@ -252,7 +254,7 @@ public class DBSync {
     public static class Builder {
 
         private CloudProvider mCloudProvider;
-        private SQLiteDatabase mDB;
+        private SupportSQLiteDatabase mDB;
         private String mDataBaseName;
         private String mLocalPrefName;
         private List<TableToSync> mTables = new ArrayList<>();
@@ -278,7 +280,7 @@ public class DBSync {
          * Set the connection to sqlite database
          * @param db the db
          */
-        public Builder setSQLiteDatabase(final SQLiteDatabase db) {
+        public Builder setSQLiteDatabase(final SupportSQLiteDatabase db) {
             this.mDB = db;
             return this;
         }

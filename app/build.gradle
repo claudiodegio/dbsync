@@ -38,10 +38,12 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.0'
 
     implementation 'com.github.claudiodegio:sfl4j-android:1.0.0'
-    implementation 'im.dino:dbinspector:3.4.1@aar'
+    implementation 'im.dino:dbinspector:4.0.0'
     implementation 'de.codecrafters.tableview:tableview:2.4.2'
     implementation 'commons-io:commons-io:2.6'
 
+    implementation "androidx.sqlite:sqlite:2.1.0"
+    implementation "androidx.sqlite:sqlite-framework:2.1.0"
 
     // Migration to google drive api rest
     implementation 'com.google.android.gms:play-services-auth:17.0.0'

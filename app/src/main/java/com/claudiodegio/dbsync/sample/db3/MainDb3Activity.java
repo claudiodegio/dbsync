@@ -27,7 +27,7 @@ public class MainDb3Activity extends BaseMainDbActivity implements TableViewerFr
         super.onCreate(savedInstanceState);
 
 
-        mFragment = TableViewerFragment.newInstance("db3.db", "name");
+        mFragment = TableViewerFragment.newInstance("db3", "name");
         mFragment.setOnItemClicked(this);
 
         FragmentManager fm = getFragmentManager();

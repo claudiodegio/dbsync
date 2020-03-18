@@ -19,7 +19,7 @@ public class NamesActivity extends BaseActivity implements TableViewerFragment.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fragment);
 
-        mFragment = TableViewerFragment.newInstance("db2.db", "name");
+        mFragment = TableViewerFragment.newInstance("db2", "name");
         mFragment.setOnItemClicked(this);
 
         FragmentManager fm = getFragmentManager();

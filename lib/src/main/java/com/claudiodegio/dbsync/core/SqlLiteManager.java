@@ -5,6 +5,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.Nullable;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -22,6 +24,8 @@ import com.claudiodegio.dbsync.TableToSync;
 import com.claudiodegio.dbsync.exception.SyncException;
 import com.claudiodegio.dbsync.json.JSonDatabaseReader;
 
+import static android.database.sqlite.SQLiteDatabase.CONFLICT_NONE;
+
 /**
  * Classe di gestione delle operazioni su database
  */
@@ -33,7 +37,7 @@ public class SqlLiteManager {
 
     private final static String JOIN_COLUMN_PREFIX = "FK_CLOUD_";
 
-    final private SQLiteDatabase mDB;
+    final private SupportSQLiteDatabase mDB;
     final private String mDataBaseName;
     @DBSync.ConflictPolicy
     final private int mConflictPolicy;
@@ -42,7 +46,7 @@ public class SqlLiteManager {
     final private List<TableToSync> mTableToSync;
 
 
-    public SqlLiteManager(SQLiteDatabase db,  String dataBaseName, List<TableToSync> tableToSync, int conflictPolicy, int thresholdSeconds, int schemaVersion) {
+    public SqlLiteManager(SupportSQLiteDatabase db, String dataBaseName, List<TableToSync> tableToSync, int conflictPolicy, int thresholdSeconds, int schemaVersion) {
         this.mDB = db;
         this.mDataBaseName = dataBaseName;
         this.mConflictPolicy = conflictPolicy;
@@ -234,7 +238,7 @@ public class SqlLiteManager {
         try {
 
             // Find the id
-            cur = mDB.rawQuery(sqlWithBinding.getParsed(), args);
+            cur = mDB.query(sqlWithBinding.getParsed(), args);
 
             if (cur.getCount() > 1) {
                 cloudId = record.findField(tableToSync.getCloudIdColumn()).getValueString();
@@ -264,14 +268,14 @@ public class SqlLiteManager {
     @Nullable
     private Long findDatabaseIdByCloudId(final String cloudId, final TableToSync table) {
 
-        String whereCause;
         Cursor cur = null;
+        String select;
 
         try {
 
-            whereCause = table.getCloudIdColumn() + " = ?";
+            select = "SELECT " + table.getIdColumn() + " FROM " + table.getName() + " WHERE "+ table.getCloudIdColumn() + " = ?";
 
-            cur = mDB.query(table.getName(), new String[] { table.getIdColumn()}, whereCause, new String[] { cloudId }, null, null, null, null);
+            cur = mDB.query(select,  new String[] { cloudId });
 
             if (cur.getCount() == 0) {
                 return null;
@@ -297,7 +301,7 @@ public class SqlLiteManager {
 
         whereClause = tableToSync.getIdColumn() + " = ?";
 
-        mDB.update(tableToSync.getName(), contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
+        mDB.update(tableToSync.getName(), CONFLICT_NONE, contentValues, whereClause, new String[]{ Long.toString(dbRecordMatch.getId()) });
     }
 
     private long insertRecordIntoDatabase(final TableToSync tableToSync, final Record record){
@@ -305,7 +309,7 @@ public class SqlLiteManager {
 
         contentValues = buildContentValues(tableToSync, record);
 
-       return mDB.insertOrThrow(tableToSync.getName(), null, contentValues);
+       return mDB.insert(tableToSync.getName(), CONFLICT_NONE, contentValues);
     }
 
     private ContentValues buildContentValues(final TableToSync tableToSync, final Record record){
@@ -378,7 +382,7 @@ public class SqlLiteManager {
         }
 
         try {
-            cur = mDB.rawQuery(sql, null);
+            cur = mDB.query(sql);
 
             rowCount = 0;
             contentValuesUpdate = new ContentValues();
@@ -392,7 +396,7 @@ public class SqlLiteManager {
                 // Update of cloud id
                 contentValuesUpdate.put(table.getCloudIdColumn(), uuid);
 
-                mDB.update(table.getName(), contentValuesUpdate, table.getIdColumn() + " = ?", new String[]{Integer.toString(id)});
+                mDB.update(table.getName(),CONFLICT_NONE, contentValuesUpdate, table.getIdColumn() + " = ?", new String[]{Integer.toString(id)});
                 rowCount++;
             }
 
@@ -430,7 +434,7 @@ public class SqlLiteManager {
         contentValues = new ContentValues();
         contentValues.put(table.getSendTimeColumn(), sendTimestamp);
 
-        rowUpdated = mDB.update(table.getName(), contentValues,  where, null);
+        rowUpdated = mDB.update(table.getName(), CONFLICT_NONE, contentValues,  where, null);
 
         Log.i(TAG, "end populateUUID  updated record:" + rowUpdated);
     }
@@ -493,7 +497,7 @@ public class SqlLiteManager {
 
             Log.d(TAG, "Write sql:" + sql);
 
-            cur = mDB.rawQuery(sql, null);
+            cur = mDB.query(sql, null);
 
             writer.writeTable(table.getName(), cur.getCount());
 

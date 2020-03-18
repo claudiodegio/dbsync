@@ -5,6 +5,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -17,6 +19,8 @@ import com.claudiodegio.dbsync.sample.R;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
+import static android.database.sqlite.SQLiteDatabase.CONFLICT_NONE;
 
 public class InsertNameActivity extends BaseActivity {
 
@@ -36,7 +40,7 @@ public class InsertNameActivity extends BaseActivity {
     CheckBox mCheckBoxNull;
     private long mId = -1;
 
-    SQLiteDatabase mDB;
+    SupportSQLiteDatabase mDB;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,7 +68,7 @@ public class InsertNameActivity extends BaseActivity {
         contentValues.put("FILTER", Integer.parseInt(mETFilter.getEditableText().toString()));
         contentValues.putNull("SEND_TIME");
 
-        mDB.insert("name", null, contentValues);
+        mDB.insert("name", CONFLICT_NONE, contentValues);
 
         finish();
     }
@@ -83,7 +87,7 @@ public class InsertNameActivity extends BaseActivity {
         contentValues.put("FILTER", Integer.parseInt(mETFilter.getEditableText().toString()));
         contentValues.putNull("SEND_TIME");
 
-        mDB.update("name", contentValues, "_id = ? ", new String[] {Long.toString(mId)});
+        mDB.update("name", CONFLICT_NONE, contentValues, "_id = ? ", new String[] {Long.toString(mId)});
 
         finish();
     }
@@ -98,7 +102,7 @@ public class InsertNameActivity extends BaseActivity {
         Cursor cur;
 
         if (mId != -1) {
-            cur = mDB.query("name", null, "_id = ?", new String[] {Long.toString(mId)}, null, null, null);
+            cur = mDB.query("SELECT * FROM name WHERE _id = ?", new String[] {Long.toString(mId)});
             cur.moveToFirst();
             mETName.setText(cur.getString(1));
             cur.close();

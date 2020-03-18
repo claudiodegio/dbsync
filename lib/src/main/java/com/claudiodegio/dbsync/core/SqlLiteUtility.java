@@ -5,6 +5,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.regex.Pattern;
 public class SqlLiteUtility {
 
 
-    public static Map<String, ValueMetadata> readTableMetadataAsMap(final SQLiteDatabase db, final String tableName) {
+    public static Map<String, ValueMetadata> readTableMetadataAsMap(final SupportSQLiteDatabase db, final String tableName) {
         List<ValueMetadata> columns;
         Map<String, ValueMetadata> maps;
 
@@ -30,7 +32,7 @@ public class SqlLiteUtility {
         return maps;
     }
 
-    public static List<ValueMetadata> readTableMetadata(final SQLiteDatabase db, final String tableName) {
+    public static List<ValueMetadata> readTableMetadata(final SupportSQLiteDatabase db, final String tableName) {
 
         Cursor cursor = null;
         String columnName;
@@ -39,7 +41,7 @@ public class SqlLiteUtility {
 
         List<ValueMetadata> list = new ArrayList<>();
 
-        cursor = db.rawQuery("PRAGMA table_info('" + tableName + "')", null);
+        cursor = db.query("PRAGMA table_info('" + tableName + "')", null);
 
         while (cursor.moveToNext()){
 

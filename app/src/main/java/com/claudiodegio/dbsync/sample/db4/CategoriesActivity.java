@@ -20,7 +20,7 @@ public class CategoriesActivity extends BaseActivity implements TableViewerFragm
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fragment);
 
-        mFragment = TableViewerFragment.newInstance("db4.db", "CATEGORY");
+        mFragment = TableViewerFragment.newInstance("db4", "CATEGORY");
 
         mFragment.setOnItemClicked(this);
 

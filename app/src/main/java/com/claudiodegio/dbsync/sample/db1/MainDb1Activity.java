@@ -28,7 +28,7 @@ public class MainDb1Activity extends BaseMainDbActivity implements TableViewerFr
         super.onCreate(savedInstanceState);
 
 
-        mFragment = TableViewerFragment.newInstance("db1.db", "name");
+        mFragment = TableViewerFragment.newInstance("db1", "name");
         mFragment.setOnItemClicked(this);
 
         FragmentManager fm = getFragmentManager();

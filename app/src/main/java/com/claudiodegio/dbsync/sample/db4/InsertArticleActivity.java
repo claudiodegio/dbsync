@@ -5,6 +5,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -17,6 +19,8 @@ import com.claudiodegio.dbsync.sample.R;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+
+import static android.database.sqlite.SQLiteDatabase.CONFLICT_NONE;
 
 public class InsertArticleActivity extends BaseActivity {
 
@@ -39,7 +43,7 @@ public class InsertArticleActivity extends BaseActivity {
     CheckBox mCheckBoxNullCategoryId;
     private long mId = -1;
 
-    SQLiteDatabase mDB;
+    SupportSQLiteDatabase mDB;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,7 +62,7 @@ public class InsertArticleActivity extends BaseActivity {
     @OnClick(R.id.btInsert)
     public void insertName(){
 
-        mDB.insert("article", null, buildContentValue());
+        mDB.insert("article", CONFLICT_NONE, buildContentValue());
 
         finish();
     }
@@ -66,7 +70,7 @@ public class InsertArticleActivity extends BaseActivity {
     @OnClick(R.id.btUpdate)
     public void updateName(){
 
-        mDB.update("article", buildContentValue(), "_id = ? ", new String[] {Long.toString(mId)});
+        mDB.update("article", CONFLICT_NONE, buildContentValue(), "_id = ? ", new String[] {Long.toString(mId)});
 
         finish();
     }
@@ -103,7 +107,7 @@ public class InsertArticleActivity extends BaseActivity {
         Cursor cur;
 
         if (mId != -1) {
-            cur = mDB.query("article", null, "_id = ?", new String[] {Long.toString(mId)}, null, null, null);
+            cur = mDB.query("SELECT * FROM article WHERE _id = ?", new String[] {Long.toString(mId)});
             cur.moveToFirst();
             mETName.setText(cur.getString(1));
 
