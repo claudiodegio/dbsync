@@ -1,6 +1,6 @@
 package com.claudiodegio.dbsync.sample;
 
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 
 import com.claudiodegio.dbsync.sample.db1.Db1OpenHelper;
 import com.claudiodegio.dbsync.sample.db2.Db2OpenHelper;

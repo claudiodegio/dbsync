@@ -4,12 +4,11 @@ package com.claudiodegio.dbsync.core;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.collections4.Predicate;
 
 import java.io.IOException;
 import java.util.ArrayList;

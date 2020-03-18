@@ -3,7 +3,7 @@ package com.claudiodegio.dbsync.sample.db4;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.claudiodegio.dbsync.provider.CloudProvider;
 import com.claudiodegio.dbsync.DBSync;
